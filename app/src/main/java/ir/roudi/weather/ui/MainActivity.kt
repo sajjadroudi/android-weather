@@ -1,4 +1,4 @@
-package ir.roudi.weather
+package ir.roudi.weather.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -11,6 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import ir.roudi.weather.R
+import ir.roudi.weather.data.remote.RetrofitHelper
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,12 +57,17 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
                     currentLocation = location
-                    txtHello.text = "getLastLocation: ${location?.longitude} - ${location?.latitude}"
-                    Log.i("MainActivity", "getLastLocation: ${location?.longitude} - ${location?.latitude}")
+
+                    GlobalScope.launch {
+                        val city = async { RetrofitHelper.cityService.getCity(location?.latitude!!, location.longitude) }
+                        Log.i(TAG, "getLastLocation: ${city.await().body()}")
+                    }
+
+                    Log.i(TAG, "getLastLocation: ${location?.longitude} - ${location?.latitude}")
                 }.addOnFailureListener {
-                    Log.i("MainActivity", "getLastLocation : failure due to ${it.message}")
+                    Log.i(TAG, "getLastLocation : failure due to ${it.message}")
                 }.addOnCanceledListener {
-                    Log.i("MainActivity", "getLastLocation : cancel")
+                    Log.i(TAG, "getLastLocation : cancel")
                 }
     }
 
@@ -67,5 +77,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE = 1
         const val DEBUG_MODE = true
+        const val TAG = "MainActivity"
     }
 }
