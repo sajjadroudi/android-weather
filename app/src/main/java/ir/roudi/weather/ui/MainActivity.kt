@@ -6,12 +6,17 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import ir.roudi.weather.R
 import ir.roudi.weather.data.local.AppDatabase
 import ir.roudi.weather.data.remote.RetrofitHelper
@@ -22,10 +27,12 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var txtHello : TextView
     private var currentLocation : Location? = null
     private val locationPermission = if(DEBUG_MODE) Manifest.permission.ACCESS_FINE_LOCATION
     else Manifest.permission.ACCESS_COARSE_LOCATION
+
+    private lateinit var navController: NavController
+    private lateinit var bottomNav: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +40,11 @@ class MainActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        txtHello = findViewById(R.id.txt_hello)
+        navController = findNavController(R.id.nav_host_fragment)
+
+        bottomNav = findViewById(R.id.bottom_nav)
+        bottomNav.setupWithNavController(navController)
+
     }
 
     override fun onStart() {
