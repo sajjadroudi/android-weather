@@ -58,12 +58,16 @@ class MainActivity : AppCompatActivity() {
                 .addOnSuccessListener { location: Location? ->
                     currentLocation = location
 
+                    Log.i(TAG, "getLastLocation: ${location?.latitude} ${location?.longitude}")
+
                     GlobalScope.launch {
-                        val city = async { RetrofitHelper.cityService.getCity(location?.latitude!!, location.longitude) }
-                        Log.i(TAG, "getLastLocation: ${city.await().body()}")
+                        val city = RetrofitHelper.service.getCity(location?.latitude!!, location.longitude)
+                        Log.i(TAG, "City: $city")
+
+                        val weather = RetrofitHelper.service.getWeather(city.id)
+                        Log.i(TAG, "Weather: $weather")
                     }
 
-                    Log.i(TAG, "getLastLocation: ${location?.longitude} - ${location?.latitude}")
                 }.addOnFailureListener {
                     Log.i(TAG, "getLastLocation : failure due to ${it.message}")
                 }.addOnCanceledListener {
