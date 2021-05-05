@@ -9,12 +9,14 @@ import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Observer
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import ir.roudi.weather.R
+import ir.roudi.weather.data.local.AppDatabase
 import ir.roudi.weather.data.remote.RetrofitHelper
+import ir.roudi.weather.data.Repository
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -60,12 +62,30 @@ class MainActivity : AppCompatActivity() {
 
                     Log.i(TAG, "getLastLocation: ${location?.latitude} ${location?.longitude}")
 
+                    val database = AppDatabase.getInstance(this@MainActivity)
+
+                    val repository = Repository(
+                        database.cityDao,
+                        database.weatherDao,
+                        RetrofitHelper.service
+                    )
+
+                    repository.cities.observe(this@MainActivity, Observer {
+                        if(it == null || it.isEmpty()) return@Observer
+                        val city = it[0]
+                        Log.i(TAG, "new city: $city")
+                    })
+
                     GlobalScope.launch {
                         val city = RetrofitHelper.service.getCity(location?.latitude!!, location.longitude)
                         Log.i(TAG, "City: $city")
 
                         val weather = RetrofitHelper.service.getWeather(city.id)
                         Log.i(TAG, "Weather: $weather")
+
+                        repository.insertCity(location.latitude, location.longitude)
+
+                        repository.refresh()
                     }
 
                 }.addOnFailureListener {

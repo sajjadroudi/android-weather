@@ -5,12 +5,18 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import ir.roudi.weather.data.local.dao.CityDao
+import ir.roudi.weather.data.local.dao.WeatherDao
 import ir.roudi.weather.data.local.entity.City
 import ir.roudi.weather.data.local.entity.Weather
 
-@Database(entities = [City::class, Weather::class], version = 1)
+@Database(entities = [City::class, Weather::class], version = 2, exportSchema = false)
 @TypeConverters(Converter::class)
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract val cityDao : CityDao
+
+    abstract val weatherDao : WeatherDao
 
     companion object {
         lateinit var INSTANCE : AppDatabase

@@ -18,8 +18,8 @@ data class Weather(
     @ColumnInfo(name = "max_temp") val maxTemperature: Int,
     @ColumnInfo(name = "win_speed") val windSpeed: Int,
     @ColumnInfo(name = "cloudiness_speed") val cloudinessPercent: Int,
-    @ColumnInfo(name = "last_hour_rain_volume") val lastHourRainVolume: Int,
-    @ColumnInfo(name = "last_hour_snow_volume") val lastHourSnowVolume: Int,
+    @ColumnInfo(name = "last_hour_rain_volume") val lastHourRainVolume: Int? = null,
+    @ColumnInfo(name = "last_hour_snow_volume") val lastHourSnowVolume: Int? = null,
     @ColumnInfo(name = "time") val time: Calendar,
     @ColumnInfo(name = "sunrise") val sunrise: Calendar,
     @ColumnInfo(name = "sunset") val sunset: Calendar
