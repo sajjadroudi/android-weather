@@ -10,7 +10,7 @@ import ir.roudi.weather.data.local.dao.WeatherDao
 import ir.roudi.weather.data.local.entity.City
 import ir.roudi.weather.data.local.entity.Weather
 
-@Database(entities = [City::class, Weather::class], version = 2, exportSchema = false)
+@Database(entities = [City::class, Weather::class], version = 3, exportSchema = false)
 @TypeConverters(Converter::class)
 abstract class AppDatabase : RoomDatabase() {
 

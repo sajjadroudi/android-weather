@@ -13,8 +13,8 @@ data class Weather(
     val maxTemperature: Int,
     val windSpeed: Int,
     val cloudinessPercent: Int,
-    val lastHourRainVolume: Int? = null,
-    val lastHourSnowVolume: Int? = null,
+    val lastHourRainVolume: Double? = null,
+    val lastHourSnowVolume: Double? = null,
     val time: Calendar,
     val sunrise: Calendar,
     val sunset: Calendar
