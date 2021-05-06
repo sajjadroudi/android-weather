@@ -1,17 +1,17 @@
 package ir.roudi.weather.data
 
-import ir.roudi.weather.data.local.dao.CityDao
-import ir.roudi.weather.data.local.dao.WeatherDao
+import ir.roudi.weather.data.local.db.dao.CityDao
+import ir.roudi.weather.data.local.db.dao.WeatherDao
+import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.Service
-import ir.roudi.weather.data.remote.response.City as RemoteCity
 import ir.roudi.weather.data.remote.response.Weather as RemoteWeather
-import ir.roudi.weather.data.local.entity.City as LocalCity
-import ir.roudi.weather.data.local.entity.Weather as LocalWeather
+import ir.roudi.weather.data.local.db.entity.City as LocalCity
 
 class Repository(
-        private val cityDao: CityDao,
-        private val weatherDao: WeatherDao,
-        private val service: Service
+    private val cityDao: CityDao,
+    private val weatherDao: WeatherDao,
+    private val service: Service,
+    private val sharedPref: SharedPrefHelper
 ) {
 
     val cities = cityDao.getAllCities()
@@ -38,5 +38,11 @@ class Repository(
         val localWeathers = remoteWeathers.toLocalWeather(cities)
         weatherDao.insert(localWeathers)
     }
+
+    fun setInt(key: String, value: Int) =
+        sharedPref.setInt(key, value)
+
+    fun getInt(key: String, defValue: Int = 0) =
+        sharedPref.getInt(key, defValue)
 
 }

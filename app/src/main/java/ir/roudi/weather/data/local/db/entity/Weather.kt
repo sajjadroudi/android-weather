@@ -1,4 +1,4 @@
-package ir.roudi.weather.data.local.entity
+package ir.roudi.weather.data.local.db.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

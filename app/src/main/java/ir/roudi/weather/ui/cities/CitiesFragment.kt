@@ -16,16 +16,17 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.AppDatabase
-import ir.roudi.weather.data.local.entity.City
+import ir.roudi.weather.data.local.db.AppDatabase
+import ir.roudi.weather.data.local.db.entity.City
+import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.RetrofitHelper
 import ir.roudi.weather.databinding.FragmentCitiesBinding
 
 class CitiesFragment : Fragment() {
 
     private val viewModel : CitiesViewModel by lazy {
-        val database = AppDatabase.getInstance(requireContext())
-        val repository = Repository(database.cityDao, database.weatherDao, RetrofitHelper.service)
+        val db = AppDatabase.getInstance(requireContext())
+        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, SharedPrefHelper(requireContext()))
         ViewModelProvider(this, CitiesViewModel.Factory(repository))
             .get(CitiesViewModel::class.java)
     }
@@ -33,8 +34,7 @@ class CitiesFragment : Fragment() {
     private val adapter : CitiesAdapter by lazy {
         CitiesAdapter(object : CitiesAdapter.AdapterCallback {
             override fun onClick(city: City) {
-                // TODO
-                Toast.makeText(context, "${city.name} clicked!", Toast.LENGTH_SHORT).show()
+                viewModel.setSelectedCityId(city.cityId)
             }
 
             override fun onDelete(city: City) {
@@ -63,6 +63,12 @@ class CitiesFragment : Fragment() {
             if(it == null || it == false) return@observe
             insertLastLocation()
             viewModel.addNewCityCompleted()
+        }
+
+        viewModel.selectedCityId.observe(viewLifecycleOwner) {
+            it ?: return@observe
+            adapter.selectedCityId = it
+            adapter.notifyDataSetChanged()
         }
 
         return binding.root

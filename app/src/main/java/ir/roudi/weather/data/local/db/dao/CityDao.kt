@@ -1,8 +1,8 @@
-package ir.roudi.weather.data.local.dao
+package ir.roudi.weather.data.local.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import ir.roudi.weather.data.local.entity.City
+import ir.roudi.weather.data.local.db.entity.City
 
 @Dao
 interface CityDao {

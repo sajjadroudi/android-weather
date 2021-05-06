@@ -5,12 +5,14 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import ir.roudi.weather.data.local.entity.City
+import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.databinding.AdapterCityBinding
 
 class CitiesAdapter(
     private val callback: AdapterCallback
 ) : ListAdapter<City, CitiesAdapter.CityViewHolder>(DiffCallback()) {
+
+    var selectedCityId : Int = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CityViewHolder {
         return CityViewHolder.from(parent)
@@ -18,7 +20,7 @@ class CitiesAdapter(
 
     override fun onBindViewHolder(holder: CityViewHolder, position: Int) {
         val cityItem = getItem(position)
-        holder.bind(cityItem, 0, callback)
+        holder.bind(cityItem, selectedCityId, callback)
     }
 
     class CityViewHolder private constructor(

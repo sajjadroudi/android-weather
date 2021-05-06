@@ -1,14 +1,14 @@
-package ir.roudi.weather.data.local
+package ir.roudi.weather.data.local.db
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import ir.roudi.weather.data.local.dao.CityDao
-import ir.roudi.weather.data.local.dao.WeatherDao
-import ir.roudi.weather.data.local.entity.City
-import ir.roudi.weather.data.local.entity.Weather
+import ir.roudi.weather.data.local.db.dao.CityDao
+import ir.roudi.weather.data.local.db.dao.WeatherDao
+import ir.roudi.weather.data.local.db.entity.City
+import ir.roudi.weather.data.local.db.entity.Weather
 
 @Database(entities = [City::class, Weather::class], version = 3, exportSchema = false)
 @TypeConverters(Converter::class)

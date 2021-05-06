@@ -1,12 +1,12 @@
 package ir.roudi.weather.data
 
-import ir.roudi.weather.data.local.entity.City
+import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.data.remote.response.Coordinates
 import java.lang.IllegalArgumentException
-import ir.roudi.weather.data.local.entity.Weather as LocalWeather
+import ir.roudi.weather.data.local.db.entity.Weather as LocalWeather
 import ir.roudi.weather.data.remote.response.Weather as RemoteWeather
 
-import ir.roudi.weather.data.local.entity.City as LocalCity
+import ir.roudi.weather.data.local.db.entity.City as LocalCity
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 
 fun RemoteWeather.toLocalWeather(cityId: Int) : LocalWeather =  LocalWeather(

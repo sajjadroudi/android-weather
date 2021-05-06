@@ -1,4 +1,4 @@
-package ir.roudi.weather.data.local
+package ir.roudi.weather.data.local.db
 
 import androidx.room.TypeConverter
 import java.util.*

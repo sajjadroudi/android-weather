@@ -2,7 +2,8 @@ package ir.roudi.weather.ui.cities
 
 import androidx.lifecycle.*
 import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.entity.City
+import ir.roudi.weather.data.local.db.entity.City
+import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
@@ -16,6 +17,12 @@ class CitiesViewModel(
     val actionAddNewCity: LiveData<Boolean>
         get() = _actionAddNewCity
 
+    private val _selectedCityId = MutableLiveData(
+        repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
+    )
+    val selectedCityId : LiveData<Int>
+        get() = _selectedCityId
+
     fun deleteCity(city: City) {
         viewModelScope.launch {
             repository.deleteCity(city)
@@ -26,6 +33,11 @@ class CitiesViewModel(
         viewModelScope.launch {
             repository.insertCity(latitude, longitude)
         }
+    }
+
+    fun setSelectedCityId(cityId: Int) {
+        repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
+        _selectedCityId.value = cityId
     }
 
     fun addNewCity() {

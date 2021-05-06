@@ -6,7 +6,7 @@
     <data>
         <variable
             name="city"
-            type="ir.roudi.weather.data.local.entity.City" />
+            type="ir.roudi.weather.data.local.db.entity.City" />
         <variable
             name="selectedCityId"
             type="int" />
@@ -39,7 +39,7 @@
             android:layout_height="match_parent"
             android:src="@drawable/ic_baseline_delete_24"
             android:padding="12dp"
-            android:background="@color/white"
+            android:background="#0000"
             android:onClick="@{() -> callback.onDelete(city)}"/>
     </LinearLayout>
 </layout>
