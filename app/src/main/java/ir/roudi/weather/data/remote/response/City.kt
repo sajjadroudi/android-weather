@@ -5,4 +5,6 @@ data class City(
     val name: String,
     val countryCode: String,
     val coordinates: Coordinates
-)
+) {
+    fun isValid() = name.isNotEmpty()
+}

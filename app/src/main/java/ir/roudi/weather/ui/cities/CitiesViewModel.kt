@@ -35,6 +35,12 @@ class CitiesViewModel(
         }
     }
 
+    fun refresh() {
+        viewModelScope.launch {
+            repository.refresh()
+        }
+    }
+
     fun setSelectedCityId(cityId: Int) {
         repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
         _selectedCityId.value = cityId

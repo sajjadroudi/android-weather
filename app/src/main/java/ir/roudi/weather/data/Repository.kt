@@ -18,7 +18,9 @@ class Repository(
 
     suspend fun insertCity(latitude: Double, longitude: Double) {
         val remoteCity = service.getCity(latitude, longitude)
+        if(!remoteCity.isValid()) return
         cityDao.insert(remoteCity.toLocalCity())
+        refresh()
     }
 
     suspend fun deleteCity(city: LocalCity) =

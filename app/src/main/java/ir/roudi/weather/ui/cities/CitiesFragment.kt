@@ -9,10 +9,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import ir.roudi.weather.data.Repository
@@ -24,11 +23,10 @@ import ir.roudi.weather.databinding.FragmentCitiesBinding
 
 class CitiesFragment : Fragment() {
 
-    private val viewModel : CitiesViewModel by lazy {
+    private val viewModel by viewModels<CitiesViewModel> {
         val db = AppDatabase.getInstance(requireContext())
         val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, SharedPrefHelper(requireContext()))
-        ViewModelProvider(this, CitiesViewModel.Factory(repository))
-            .get(CitiesViewModel::class.java)
+        CitiesViewModel.Factory(repository)
     }
 
     private val adapter : CitiesAdapter by lazy {
