@@ -10,6 +10,9 @@ interface CityDao {
     @Query("SELECT * FROM city")
     fun getAllCities() : LiveData<List<City>>
 
+    @Query("SELECT * FROM city WHERE city_id=:cityId")
+    fun getCity(cityId: Int) : LiveData<City>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(city: City)
 

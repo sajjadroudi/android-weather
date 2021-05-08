@@ -1,6 +1,5 @@
 package ir.roudi.weather.ui.weather
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -12,7 +11,6 @@ import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.RetrofitHelper
 import ir.roudi.weather.databinding.FragmentWeatherBinding
-import java.io.IOException
 
 class WeatherFragment : Fragment() {
 
@@ -30,18 +28,6 @@ class WeatherFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         setupBinding(inflater, container)
-
-        viewModel.weather.observe(viewLifecycleOwner) {
-            it ?: return@observe
-            try {
-                val fileName = "img_${it.iconId}.png"
-                val inputStream = requireContext().assets.open(fileName)
-                val drawable = Drawable.createFromStream(inputStream, null)
-                binding.imgWeather.setImageDrawable(drawable)
-            } catch (ex: IOException) {
-                ex.printStackTrace()
-            }
-        }
 
         return binding.root
     }

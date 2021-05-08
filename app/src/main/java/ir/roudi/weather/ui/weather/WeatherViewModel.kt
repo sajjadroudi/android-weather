@@ -10,14 +10,11 @@ class WeatherViewModel(
         private val repository: Repository
 ) : ViewModel() {
 
-    val selectedCityId = liveData {
-        val cityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
-        emit(cityId)
-    }
+    private val selectedCityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
 
-    val weather = repository.getWeather(
-        repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
-    )
+    val selectedCity = repository.getCity(selectedCityId)
+
+    val weather = repository.getWeather(selectedCityId)
 
     val uiWeather : LiveData<UiWeather> = Transformations.map(weather) {
         UiWeather.from(it)

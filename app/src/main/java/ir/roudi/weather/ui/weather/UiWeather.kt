@@ -20,8 +20,13 @@ data class UiWeather(
     val sunset: String
 ) {
     companion object {
-        private fun<T> stringify(data: T?) =
-                data?.toString() ?: "-"
+        private fun<T> stringify(data: T?, unit: String = ""): String {
+            return if(data == null) {
+                "-"
+            } else {
+                "${data}$unit"
+            }
+        }
 
         fun from(weather: LocalWeather?) : UiWeather? {
             weather ?: return null
@@ -29,16 +34,16 @@ data class UiWeather(
                 UiWeather(
                         it.main,
                         it.description,
-                        it.iconId,
-                        stringify(it.temperature),
-                        stringify(it.pressure),
-                        stringify(it.humidityPercent),
-                        stringify(it.minTemperature),
-                        stringify(it.maxTemperature),
-                        stringify(it.windSpeed),
-                        stringify(it.cloudinessPercent),
-                        stringify(it.lastHourRainVolume),
-                        stringify(it.lastHourSnowVolume),
+                        "img_${it.iconId}",
+                        stringify(it.temperature, "c"),
+                        stringify(it.pressure, "hPa"),
+                        stringify(it.humidityPercent, "%"),
+                        stringify(it.minTemperature, "c"),
+                        stringify(it.maxTemperature, "c"),
+                        stringify(it.windSpeed, "m/s"),
+                        stringify(it.cloudinessPercent, "%"),
+                        stringify(it.lastHourRainVolume, "mm"),
+                        stringify(it.lastHourSnowVolume, "mm"),
                         it.time.toString(), // TODO: converting Calendar objects to string must be customized
                         stringify(it.sunrise),
                         stringify(it.sunset)
