@@ -2,6 +2,7 @@ package ir.roudi.weather.ui.cities
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -36,7 +37,21 @@ class CitiesFragment : Fragment() {
             }
 
             override fun onDelete(city: City) {
-                viewModel.deleteCity(city)
+                showConfirmDialog {
+                    viewModel.deleteCity(city)
+                }
+            }
+
+            private fun showConfirmDialog(yesListener: () -> Unit) {
+                AlertDialog.Builder(context)
+                        .setPositiveButton("Delete") { _, _ ->
+                            yesListener.invoke()
+                        }
+                        .setTitle("Delete City")
+                        .setMessage("Are you sure?")
+                        .setNegativeButton("Cancel", null)
+                        .create()
+                        .show()
             }
         })
     }
