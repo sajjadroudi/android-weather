@@ -66,7 +66,7 @@ class CitiesFragment : Fragment() {
         viewModel.selectedCityId.observe(viewLifecycleOwner) {
             it ?: return@observe
             adapter.selectedCityId = it
-            adapter.notifyDataSetChanged()
+            adapter.notifySelectedCityChanged(viewModel.oldSelectedCityId, it)
         }
 
         return binding.root

@@ -23,6 +23,14 @@ class CitiesAdapter(
         holder.bind(cityItem, selectedCityId, callback)
     }
 
+    fun notifySelectedCityChanged(oldCityId: Int, newCityId: Int) {
+        val firstPos = currentList.indexOfFirst { it.cityId == oldCityId }
+        if(firstPos >= 0) notifyItemChanged(firstPos)
+
+        val secondPos = currentList.indexOfFirst { it.cityId == newCityId }
+        if(secondPos >= 0) notifyItemChanged(secondPos)
+    }
+
     class CityViewHolder private constructor(
         private val binding: AdapterCityBinding
     ) : RecyclerView.ViewHolder(binding.root) {

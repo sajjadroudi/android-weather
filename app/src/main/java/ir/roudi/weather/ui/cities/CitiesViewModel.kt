@@ -23,6 +23,9 @@ class CitiesViewModel(
     val selectedCityId : LiveData<Int>
         get() = _selectedCityId
 
+    var oldSelectedCityId : Int = 0
+        private set
+
     fun deleteCity(city: City) {
         viewModelScope.launch {
             repository.deleteCity(city)
@@ -42,6 +45,7 @@ class CitiesViewModel(
     }
 
     fun setSelectedCityId(cityId: Int) {
+        oldSelectedCityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
         repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
         _selectedCityId.value = cityId
     }
