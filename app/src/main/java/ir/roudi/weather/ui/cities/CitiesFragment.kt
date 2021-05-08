@@ -20,6 +20,7 @@ import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.RetrofitHelper
+import ir.roudi.weather.databinding.DialogEditCityBinding
 import ir.roudi.weather.databinding.FragmentCitiesBinding
 
 class CitiesFragment : Fragment() {
@@ -42,6 +43,15 @@ class CitiesFragment : Fragment() {
                 }
             }
 
+            override fun onChange(city: City) {
+                showEditDialog(city) { newCity ->
+                    viewModel.updateCity(newCity)
+
+                    val position = adapter.currentList.indexOfFirst { it.cityId == city.cityId }
+                    if(position >= 0) adapter.notifyItemChanged(position)
+                }
+            }
+
             private fun showConfirmDialog(yesListener: () -> Unit) {
                 AlertDialog.Builder(context)
                         .setPositiveButton("Delete") { _, _ ->
@@ -49,7 +59,30 @@ class CitiesFragment : Fragment() {
                         }
                         .setTitle("Delete City")
                         .setMessage("Are you sure?")
-                        .setNegativeButton("Cancel", null)
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .create()
+                        .show()
+            }
+
+            private fun showEditDialog(city: City, yesListener: (City) -> Unit) {
+                val inflater = LayoutInflater.from(context)
+                val dialogBinding = DialogEditCityBinding.inflate(
+                        inflater, binding.root as ViewGroup, false
+                )
+
+                dialogBinding.edtName.apply {
+                    setText(city.name)
+                    selectAll()
+                }
+
+                AlertDialog.Builder(context)
+                        .setTitle("Rename city")
+                        .setPositiveButton("Rename") { _, _ ->
+                            city.name = dialogBinding.edtName.text.toString().trim()
+                            yesListener.invoke(city)
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .setView(dialogBinding.root)
                         .create()
                         .show()
             }

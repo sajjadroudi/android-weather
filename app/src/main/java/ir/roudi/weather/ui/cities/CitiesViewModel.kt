@@ -38,6 +38,12 @@ class CitiesViewModel(
         }
     }
 
+    fun updateCity(newCity: City) {
+        viewModelScope.launch {
+            repository.updateCity(newCity)
+        }
+    }
+
     fun refresh() {
         viewModelScope.launch {
             repository.refresh()

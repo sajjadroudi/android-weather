@@ -26,6 +26,9 @@ class Repository(
     suspend fun deleteCity(city: LocalCity) =
         cityDao.delete(city)
 
+    suspend fun updateCity(city: LocalCity) =
+            cityDao.updateCity(city)
+
     fun getCity(cityId: Int) = cityDao.getCity(cityId)
 
     fun getWeather(cityId: Int) = weatherDao.getWeather(cityId)

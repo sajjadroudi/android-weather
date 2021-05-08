@@ -64,5 +64,6 @@ class CitiesAdapter(
     interface AdapterCallback {
         fun onClick(city: City)
         fun onDelete(city: City)
+        fun onChange(city: City)
     }
 }

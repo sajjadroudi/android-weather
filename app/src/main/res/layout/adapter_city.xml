@@ -34,6 +34,15 @@
             android:onClick="@{() -> callback.onClick(city)}"/>
 
         <ImageButton
+            android:id="@+id/btn_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_baseline_edit_24"
+            android:padding="12dp"
+            android:background="#0000"
+            android:onClick="@{() -> callback.onChange(city)}"/>
+
+        <ImageButton
             android:id="@+id/btn_delete"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
