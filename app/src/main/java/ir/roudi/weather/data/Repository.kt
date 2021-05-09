@@ -4,8 +4,9 @@ import ir.roudi.weather.data.local.db.dao.CityDao
 import ir.roudi.weather.data.local.db.dao.WeatherDao
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.Service
-import ir.roudi.weather.data.remote.response.Weather as RemoteWeather
 import ir.roudi.weather.data.local.db.entity.City as LocalCity
+import ir.roudi.weather.data.remote.response.City as RemoteCity
+import ir.roudi.weather.data.remote.response.Weather as RemoteWeather
 
 class Repository(
     private val cityDao: CityDao,
@@ -20,7 +21,10 @@ class Repository(
         val remoteCity = service.getCity(latitude, longitude)
         if(!remoteCity.isValid()) return
         cityDao.insert(remoteCity.toLocalCity())
-        refresh()
+    }
+
+    suspend fun insertCity(remoteCity: RemoteCity) {
+        cityDao.insert(remoteCity.toLocalCity())
     }
 
     suspend fun deleteCity(city: LocalCity) =
@@ -30,6 +34,8 @@ class Repository(
             cityDao.updateCity(city)
 
     fun getCity(cityId: Int) = cityDao.getCity(cityId)
+
+    suspend fun findCity(name: String) = service.findCity(name)
 
     fun getWeather(cityId: Int) = weatherDao.getWeather(cityId)
 

@@ -11,6 +11,9 @@ interface Service {
     suspend fun getCity(@Query("lat") lat: Double, @Query("lon") lon: Double) : City
 
     @GET(ENDPOINT)
+    suspend fun findCity(@Query("q") name: String) : City?
+
+    @GET(ENDPOINT)
     suspend fun getWeather(@Query("id") cityId: Int) : Weather
 
     companion object {

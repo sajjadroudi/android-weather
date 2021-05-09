@@ -4,15 +4,20 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import ir.roudi.weather.data.Repository
@@ -20,8 +25,14 @@ import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.RetrofitHelper
+import ir.roudi.weather.databinding.DialogAddCityBinding
 import ir.roudi.weather.databinding.DialogEditCityBinding
+import ir.roudi.weather.databinding.DialogFindCityBinding
 import ir.roudi.weather.databinding.FragmentCitiesBinding
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import ir.roudi.weather.data.remote.response.City as RemoteCity
+import java.lang.Exception
 
 class CitiesFragment : Fragment() {
 
@@ -65,9 +76,8 @@ class CitiesFragment : Fragment() {
             }
 
             private fun showEditDialog(city: City, yesListener: (City) -> Unit) {
-                val inflater = LayoutInflater.from(context)
                 val dialogBinding = DialogEditCityBinding.inflate(
-                        inflater, binding.root as ViewGroup, false
+                        layoutInflater, binding.root as ViewGroup, false
                 )
 
                 dialogBinding.edtName.apply {
@@ -105,9 +115,26 @@ class CitiesFragment : Fragment() {
     ): View? {
         setupBinding(inflater, container)
 
+        viewModel.cities.observe(viewLifecycleOwner) {
+            adapter.submitList(it)
+            viewModel.refresh()
+        }
+
         viewModel.actionAddNewCity.observe(viewLifecycleOwner) {
             if(it == null || it == false) return@observe
-            insertLastLocation()
+
+            showAddCityDialog { useCurrentLocation ->
+                if(useCurrentLocation) saveLastLocationAsCity()
+                else showFindCityByNameDialog(
+                        findListener = { name ->
+                            viewModel.findCity(name)
+                        },
+                        saveListener = { remoteCity ->
+                            viewModel.insertCity(remoteCity)
+                        }
+                )
+            }
+
             viewModel.addNewCityCompleted()
         }
 
@@ -127,11 +154,85 @@ class CitiesFragment : Fragment() {
         binding.lifecycleOwner = viewLifecycleOwner
     }
 
+    private fun showAddCityDialog(listener: (useCurrentLocation: Boolean) -> Unit) {
+        val dialogBinding = DialogAddCityBinding.inflate(
+                layoutInflater, binding.root as ViewGroup, false
+        )
+
+        val dialog = AlertDialog.Builder(context)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setView(dialogBinding.root)
+                .create()
+
+        dialog.show()
+
+        dialogBinding.btnCurrentLocation.setOnClickListener {
+            listener.invoke(true)
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnSearch.setOnClickListener {
+            listener.invoke(false)
+            dialog.dismiss()
+        }
+    }
+
+    private fun showFindCityByNameDialog(
+            findListener: suspend (name: String) -> RemoteCity?,
+            saveListener: (RemoteCity) -> Unit
+    ) {
+        val dialogBinding = DialogFindCityBinding.inflate(
+                layoutInflater, binding.root as ViewGroup, false
+        )
+
+        var remoteCity : RemoteCity? = null
+        var job : Job? = null
+
+        dialogBinding.edtName.addTextChangedListener(object : TextWatcher {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                job?.cancel()
+                job = lifecycleScope.launch {
+                    try {
+                        remoteCity = findListener.invoke(s?.toString() ?: "")
+
+                        dialogBinding.txtName.apply {
+                            text = remoteCity!!.name
+                            setTextColor(Color.BLACK)
+                        }
+                    } catch (e: Exception) {
+                        remoteCity = null
+                        dialogBinding.txtName.apply {
+                            text = "Not Found!"
+                            setTextColor(Color.RED)
+                        }
+                    }
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+
+        AlertDialog.Builder(context)
+                .setPositiveButton("Add") { _, _->
+                    if(remoteCity == null) {
+                        Toast.makeText(context, "No city found!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        saveListener.invoke(remoteCity!!)
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .setView(dialogBinding.root)
+                .create()
+                .show()
+    }
+
     private fun isLocationPermissionGranted()
             = ActivityCompat.checkSelfPermission(requireContext(), locationPermission) == PackageManager.PERMISSION_GRANTED
 
     @SuppressLint("MissingPermission")
-    private fun insertLastLocation() {
+    private fun saveLastLocationAsCity() {
         if (isLocationPermissionGranted()) {
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
@@ -155,7 +256,7 @@ class CitiesFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode == REQUEST_CODE) {
             if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                insertLastLocation()
+                saveLastLocationAsCity()
             }
         }
     }

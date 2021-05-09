@@ -3,6 +3,7 @@ package ir.roudi.weather.ui.cities
 import androidx.lifecycle.*
 import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.db.entity.City
+import ir.roudi.weather.data.remote.response.City as RemoteCity
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
@@ -38,11 +39,20 @@ class CitiesViewModel(
         }
     }
 
+    fun insertCity(remoteCity: RemoteCity) {
+        viewModelScope.launch {
+            repository.insertCity(remoteCity)
+        }
+    }
+
     fun updateCity(newCity: City) {
         viewModelScope.launch {
             repository.updateCity(newCity)
         }
     }
+
+    suspend fun findCity(name: String) =
+            repository.findCity(name)
 
     fun refresh() {
         viewModelScope.launch {
