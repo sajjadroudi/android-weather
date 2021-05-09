@@ -1,8 +1,6 @@
 package ir.roudi.weather.ui
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import ir.roudi.weather.data.Repository
 import kotlinx.coroutines.launch
 
@@ -10,9 +8,15 @@ class MainViewModel(
     private val repository: Repository
 ) : ViewModel() {
 
+    private val _hasDataFetched = MutableLiveData<Boolean>()
+    val hasDataFetched : LiveData<Boolean>
+        get() = _hasDataFetched
+
     fun refresh() {
+        _hasDataFetched.value = false
         viewModelScope.launch {
             repository.refresh()
+            _hasDataFetched.value = true
         }
     }
 

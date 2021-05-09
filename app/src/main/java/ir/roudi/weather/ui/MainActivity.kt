@@ -3,11 +3,13 @@ package ir.roudi.weather.ui
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import ir.roudi.weather.R
 import ir.roudi.weather.WeatherApp
@@ -34,6 +36,21 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<BottomNavigationView>(R.id.bottom_nav)
             .setupWithNavController(navController)
+
+        val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            if(isConnected()) {
+                viewModel.refresh()
+            } else {
+                Toast.makeText(this, "No Internet", Toast.LENGTH_SHORT).show()
+                swipeRefresh.isRefreshing = false
+            }
+        }
+
+        viewModel.hasDataFetched.observe(this) {
+            if(it == true)
+                swipeRefresh.isRefreshing = false
+        }
 
         if(isConnected()) {
             viewModel.refresh()
