@@ -19,7 +19,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val weatherDao : WeatherDao
 
     companion object {
-        lateinit var INSTANCE : AppDatabase
+        private lateinit var INSTANCE : AppDatabase
         fun getInstance(context: Context): AppDatabase {
             if(!::INSTANCE.isInitialized) {
                 synchronized(AppDatabase::class) {

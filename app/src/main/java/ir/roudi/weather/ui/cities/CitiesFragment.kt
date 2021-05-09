@@ -32,7 +32,7 @@ import ir.roudi.weather.databinding.FragmentCitiesBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ir.roudi.weather.data.remote.response.City as RemoteCity
-import java.lang.Exception
+
 
 class CitiesFragment : Fragment() {
 
@@ -117,7 +117,6 @@ class CitiesFragment : Fragment() {
 
         viewModel.cities.observe(viewLifecycleOwner) {
             adapter.submitList(it)
-            viewModel.refresh()
         }
 
         viewModel.actionAddNewCity.observe(viewLifecycleOwner) {

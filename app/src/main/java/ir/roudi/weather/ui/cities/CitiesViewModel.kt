@@ -54,14 +54,8 @@ class CitiesViewModel(
     suspend fun findCity(name: String) =
             repository.findCity(name)
 
-    fun refresh() {
-        viewModelScope.launch {
-            repository.refresh()
-        }
-    }
-
     fun setSelectedCityId(cityId: Int) {
-        oldSelectedCityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
+        oldSelectedCityId = _selectedCityId.value ?: repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
         repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
         _selectedCityId.value = cityId
     }
