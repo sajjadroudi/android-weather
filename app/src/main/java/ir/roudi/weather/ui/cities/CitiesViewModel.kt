@@ -34,13 +34,19 @@ class CitiesViewModel(
     val errorMessage : LiveData<String?>
         get() = _errorMessage
 
+    private val _shouldUpdateWidget = MutableLiveData(false)
+    val shouldUpdateWidget : LiveData<Boolean>
+        get() = _shouldUpdateWidget
+
     fun deleteCity(city: City) {
         viewModelScope.launch {
             repository.deleteCity(city)
         }
 
-        if(city.cityId == selectedCityId.value)
+        if(city.cityId == selectedCityId.value) {
             repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, 0)
+            _shouldUpdateWidget.value = true
+        }
     }
 
     fun insertCity(latitude: Double, longitude: Double) {
@@ -76,6 +82,7 @@ class CitiesViewModel(
         oldSelectedCityId = _selectedCityId.value ?: repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
         repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
         _selectedCityId.value = cityId
+        _shouldUpdateWidget.value = true
     }
 
     fun addNewCity() {
@@ -88,6 +95,10 @@ class CitiesViewModel(
 
     fun errorMessageCompleted() {
         _errorMessage.value = null
+    }
+
+    fun updateWidgetCompleted() {
+        _shouldUpdateWidget.value = false
     }
 
     class Factory(

@@ -3,6 +3,9 @@ package ir.roudi.weather.ui.cities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -34,6 +37,7 @@ import ir.roudi.weather.databinding.DialogAddCityBinding
 import ir.roudi.weather.databinding.DialogEditCityBinding
 import ir.roudi.weather.databinding.DialogFindCityBinding
 import ir.roudi.weather.databinding.FragmentCitiesBinding
+import ir.roudi.weather.widget.WeatherAppWidgetProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ir.roudi.weather.data.remote.response.City as RemoteCity
@@ -152,6 +156,23 @@ class CitiesFragment : Fragment() {
             it ?: return@observe
             adapter.selectedCityId = it
             adapter.notifySelectedCityChanged(viewModel.oldSelectedCityId, it)
+        }
+
+        viewModel.shouldUpdateWidget.observe(viewLifecycleOwner) {
+            if(it != true) return@observe
+
+            val ids = AppWidgetManager.getInstance(context).getAppWidgetIds(
+                    ComponentName(requireContext(), WeatherAppWidgetProvider::class.java)
+            )
+
+            val intent = Intent(context, WeatherAppWidgetProvider::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+            }
+
+            requireActivity().sendBroadcast(intent)
+
+            viewModel.updateWidgetCompleted()
         }
 
         return binding.root
