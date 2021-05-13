@@ -15,11 +15,23 @@
         android:layout_height="match_parent"
         tools:context=".ui.cities.CitiesFragment">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+            android:visibility="@{viewmodel.cities.empty ? View.GONE : View.VISIBLE}">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="@{viewmodel.actionShowProgressBar ? View.VISIBLE : View.INVISIBLE}"/>
+        </FrameLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
@@ -31,11 +43,14 @@
             android:src="@drawable/ic_baseline_add_24"
             android:onClick="@{() -> viewmodel.addNewCity()}"/>
 
-        <ProgressBar
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:visibility="@{viewmodel.actionShowProgressBar ? View.VISIBLE : View.INVISIBLE}"/>
+            android:textSize="17sp"
+            android:textColor="@color/black"
+            android:text="No city found!"
+            android:visibility="@{viewmodel.cities.empty ? View.VISIBLE : View.GONE}"/>
 
     </FrameLayout>
 </layout>
