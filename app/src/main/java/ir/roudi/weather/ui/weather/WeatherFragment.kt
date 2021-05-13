@@ -1,5 +1,6 @@
 package ir.roudi.weather.ui.weather
 
+import android.app.AlertDialog
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,6 +11,7 @@ import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.RetrofitHelper
+import ir.roudi.weather.databinding.DialogWeatherDetailsBinding
 import ir.roudi.weather.databinding.FragmentWeatherBinding
 
 class WeatherFragment : Fragment() {
@@ -20,6 +22,18 @@ class WeatherFragment : Fragment() {
         WeatherViewModel.Factory(repository)
     }
 
+    private val moreDetailsDialog : AlertDialog by lazy {
+        val dialogBinding = DialogWeatherDetailsBinding.inflate(layoutInflater, view as ViewGroup, false)
+        dialogBinding.lifecycleOwner = viewLifecycleOwner
+        dialogBinding.weather = viewModel.uiWeather
+
+        AlertDialog.Builder(context)
+                .setView(dialogBinding.root)
+                .setTitle("More Details")
+                .setPositiveButton(android.R.string.ok, null)
+                .create()
+    }
+
     private lateinit var binding : FragmentWeatherBinding
 
     override fun onCreateView(
@@ -28,6 +42,13 @@ class WeatherFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         setupBinding(inflater, container)
+
+        viewModel.actionShowMoreDetailsDialog.observe(viewLifecycleOwner) { shouldShow ->
+            if(shouldShow) {
+                moreDetailsDialog.show()
+                viewModel.showingMoreDetailsDialogCompleted()
+            }
+        }
 
         return binding.root
     }

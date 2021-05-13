@@ -22,6 +22,18 @@ class WeatherViewModel(
         UiWeather.from(it)
     }
 
+    private val _actionShowMoreDetailsDialog = MutableLiveData(false)
+    val actionShowMoreDetailsDialog : LiveData<Boolean>
+        get() = _actionShowMoreDetailsDialog
+
+    fun showMoreDetailsDialog() {
+        _actionShowMoreDetailsDialog.value = true
+    }
+
+    fun showingMoreDetailsDialogCompleted() {
+        _actionShowMoreDetailsDialog.value = false
+    }
+
     class Factory(
             private val repository: Repository
     ) : ViewModelProvider.Factory {

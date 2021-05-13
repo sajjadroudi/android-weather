@@ -25,7 +25,7 @@ data class UiWeather(
             return if(data == null) {
                 "-"
             } else {
-                "${data}$unit"
+                "$data $unit"
             }
         }
 
@@ -46,8 +46,8 @@ data class UiWeather(
                         stringify(it.lastHourRainVolume, "mm"),
                         stringify(it.lastHourSnowVolume, "mm"),
                         SimpleDateFormat("MMM d, yyyy h:mm a").format(it.time.timeInMillis),
-                        stringify(it.sunrise),
-                        stringify(it.sunset)
+                        SimpleDateFormat("MMM d, HH:mm:ss").format(it.sunrise?.timeInMillis),
+                        SimpleDateFormat("MMM d, HH:mm:ss").format(it.sunset?.timeInMillis),
                 )
             }
         }

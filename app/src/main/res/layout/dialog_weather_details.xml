@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <variable
+            name="weather"
+            type="androidx.lifecycle.LiveData&lt;ir.roudi.weather.ui.weather.UiWeather&gt;" />
+    </data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Pressure"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.pressure}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Min Temperature"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.minTemperature}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Max Temperature"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.maxTemperature}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Cloudiness Percent"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.cloudinessPercent}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Last Hour Rain Volume"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.lastHourRainVolume}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Last Hour Snow Volume"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.lastHourSnowVolume}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Sunrise"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.sunrise}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/WeatherMoreDetailsContainer">
+                <TextView
+                    android:text="Sunset"
+                    style="@style/WeatherMoreDetailsTextView" />
+
+                <TextView
+                    android:text="@{weather.sunset}"
+                    style="@style/WeatherMoreDetailsTextView" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</layout>

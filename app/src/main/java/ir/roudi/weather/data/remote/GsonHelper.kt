@@ -46,8 +46,8 @@ object GsonHelper {
         val snow = obj.getAsJsonObject("snow")?.getAsJsonPrimitive("1h")?.asDouble
 
         val sys = obj.getAsJsonObject("sys")
-        val sunrise = toCalendar(sys?.getAsJsonPrimitive("sunrise")?.asLong)
-        val sunset = toCalendar(sys?.getAsJsonPrimitive("sunset")?.asLong)
+        val sunrise = toCalendar(sys?.getAsJsonPrimitive("sunrise")?.asLong?.times(1000))
+        val sunset = toCalendar(sys?.getAsJsonPrimitive("sunset")?.asLong?.times(1000))
 
         return Weather(
                 weather.get("main").asString,
