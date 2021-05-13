@@ -3,23 +3,28 @@ package ir.roudi.weather.ui.cities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.CompositePermissionListener
+import com.karumi.dexter.listener.single.PermissionListener
+import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener
 import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.db.entity.City
@@ -227,41 +232,42 @@ class CitiesFragment : Fragment() {
                 .show()
     }
 
-    private fun isLocationPermissionGranted()
-            = ActivityCompat.checkSelfPermission(requireContext(), locationPermission) == PackageManager.PERMISSION_GRANTED
-
     @SuppressLint("MissingPermission")
     private fun saveLastLocationAsCity() {
-        if (isLocationPermissionGranted()) {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    location ?: return@addOnSuccessListener
-                    viewModel.insertCity(location.latitude, location.longitude)
-                }.addOnFailureListener {
-                    Log.i(TAG, "getLastLocation : failure due to ${it.message}")
-                }.addOnCanceledListener {
-                    Log.i(TAG, "getLastLocation : cancel")
-                }
-        } else {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(locationPermission), REQUEST_CODE)
-        }
-    }
+        val snackbarPermissionListener = SnackbarOnDeniedPermissionListener.Builder
+                .with(view, "Location permission is needed for detecting your city location")
+                .withOpenSettingsButton("Settings")
+                .build()
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == REQUEST_CODE) {
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                saveLastLocationAsCity()
+
+        val permissionListener = object : PermissionListener {
+            override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                fusedLocationClient.lastLocation
+                        .addOnSuccessListener { location: Location? ->
+                            location ?: return@addOnSuccessListener
+                            viewModel.insertCity(location.latitude, location.longitude)
+                        }.addOnFailureListener {
+                            Toast.makeText(context, "Could not get location due to ${it.message}", Toast.LENGTH_LONG).show()
+                        }
+            }
+            override fun onPermissionDenied(p0: PermissionDeniedResponse?) {}
+            override fun onPermissionRationaleShouldBeShown(request: PermissionRequest?, token: PermissionToken?) {
+                token?.continuePermissionRequest()
             }
         }
+
+        val compositePermissionListener = CompositePermissionListener(
+                snackbarPermissionListener,
+                permissionListener
+        )
+
+        Dexter.withContext(context)
+                .withPermission(locationPermission)
+                .withListener(compositePermissionListener)
+                .check()
     }
 
     companion object {
-        const val REQUEST_CODE = 1
         const val DEBUG_MODE = true
         const val TAG = "CitiesFragment"
     }
