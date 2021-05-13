@@ -1,5 +1,6 @@
 package ir.roudi.weather.ui.weather
 
+import java.text.SimpleDateFormat
 import ir.roudi.weather.data.local.db.entity.Weather as LocalWeather
 
 data class UiWeather(
@@ -44,7 +45,7 @@ data class UiWeather(
                         stringify(it.cloudinessPercent, "%"),
                         stringify(it.lastHourRainVolume, "mm"),
                         stringify(it.lastHourSnowVolume, "mm"),
-                        it.time.toString(), // TODO: converting Calendar objects to string must be customized
+                        SimpleDateFormat("MMM d, yyyy h:mm a").format(it.time.timeInMillis),
                         stringify(it.sunrise),
                         stringify(it.sunset)
                 )

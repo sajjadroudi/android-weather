@@ -7,7 +7,6 @@ import com.jayway.jsonpath.Option
 import ir.roudi.weather.data.remote.response.City
 import ir.roudi.weather.data.remote.response.Coordinates
 import ir.roudi.weather.data.remote.response.Weather
-import java.lang.Exception
 import java.lang.reflect.Type
 import java.util.*
 
@@ -63,7 +62,7 @@ object GsonHelper {
                 cloudiness,
                 rain,
                 snow,
-                Calendar.getInstance().apply { timeInMillis = obj.get("dt").asLong },
+                Calendar.getInstance().apply { timeInMillis = obj.get("dt").asLong * 1000 },
                 sunrise,
                 sunset
         )

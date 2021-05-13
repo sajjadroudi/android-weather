@@ -22,10 +22,23 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/txt_updated_at"
             android:textColor="@color/black"
             android:textSize="20sp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="16dp"
             tools:text="Mashhad"/>
+
+        <TextView
+            android:id="@+id/txt_updated_at"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/img_weather"
+            android:textColor="@color/black"
+            android:textSize="17sp"
+            android:text="@{viewmodel.uiWeather.time}"/>
 
         <ImageView
             android:id="@+id/img_weather"
@@ -35,7 +48,7 @@
             android:src="@android:drawable/ic_delete"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txt_city_name"
+            app:layout_constraintTop_toBottomOf="@id/txt_updated_at"
             app:imageName="@{viewmodel.uiWeather.iconId}"/>
 
         <TextView
@@ -71,7 +84,8 @@
             android:layout_marginTop="32dp"
             app:layout_constraintTop_toBottomOf="@id/txt_desc"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/btn_details">
 
             <LinearLayout style="@style/WeatherContainer">
 
@@ -116,6 +130,7 @@
 
         <!-- TODO: by clicking on this button a dialog appears-->
         <Button
+            android:id="@+id/btn_details"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
