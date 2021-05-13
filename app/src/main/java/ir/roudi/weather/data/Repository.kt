@@ -27,17 +27,20 @@ class Repository(
         val remoteCity = service.getCity(latitude, longitude)
         if(!remoteCity.isValid()) return
         cityDao.insert(remoteCity.toLocalCity())
+
+        refreshWeather(remoteCity.id)
     }
 
     suspend fun insertCity(remoteCity: RemoteCity) {
         cityDao.insert(remoteCity.toLocalCity())
+        refreshWeather(remoteCity.id)
     }
 
     suspend fun deleteCity(city: LocalCity) =
         cityDao.delete(city)
 
     suspend fun updateCity(city: LocalCity) =
-            cityDao.updateCity(city)
+        cityDao.updateCity(city)
 
     fun getCity(cityId: Int) = cityDao.getCity(cityId)
 
@@ -50,7 +53,7 @@ class Repository(
         return weatherDao.getWeather(cityId)
     }
 
-    suspend fun refreshWeather(cityId: Int) {
+    private suspend fun refreshWeather(cityId: Int) {
         val remoteWeather = service.getWeather(cityId)
         weatherDao.insert(remoteWeather.toLocalWeather(cityId))
     }

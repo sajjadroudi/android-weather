@@ -124,6 +124,12 @@ class CitiesFragment : Fragment() {
             adapter.submitList(it)
         }
 
+        viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
+            message ?: return@observe
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            viewModel.errorMessageCompleted()
+        }
+
         viewModel.actionAddNewCity.observe(viewLifecycleOwner) {
             if(it == null || it == false) return@observe
 

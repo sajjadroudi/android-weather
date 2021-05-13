@@ -46,10 +46,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.cities.observe(this) {
-            viewModel.refresh()
-        }
-
         viewModel.hasDataFetched.observe(this) {
             if(it == true)
                 swipeRefresh.isRefreshing = false

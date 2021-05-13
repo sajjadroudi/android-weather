@@ -3,10 +3,9 @@ package ir.roudi.weather.ui.cities
 import androidx.lifecycle.*
 import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.db.entity.City
-import ir.roudi.weather.data.remote.response.City as RemoteCity
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import kotlinx.coroutines.launch
-import java.lang.IllegalArgumentException
+import ir.roudi.weather.data.remote.response.City as RemoteCity
 
 class CitiesViewModel(
         private val repository: Repository
@@ -27,6 +26,14 @@ class CitiesViewModel(
     var oldSelectedCityId : Int = 0
         private set
 
+    private val _actionShowProgressBar = MutableLiveData(false)
+    val actionShowProgressBar : LiveData<Boolean>
+        get() = _actionShowProgressBar
+
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage : LiveData<String?>
+        get() = _errorMessage
+
     fun deleteCity(city: City) {
         viewModelScope.launch {
             repository.deleteCity(city)
@@ -37,14 +44,22 @@ class CitiesViewModel(
     }
 
     fun insertCity(latitude: Double, longitude: Double) {
-        viewModelScope.launch {
-            repository.insertCity(latitude, longitude)
-        }
+        handle { repository.insertCity(latitude, longitude) }
     }
 
     fun insertCity(remoteCity: RemoteCity) {
+        handle { repository.insertCity(remoteCity) }
+    }
+
+    private fun handle(block: suspend () -> Unit) {
         viewModelScope.launch {
-            repository.insertCity(remoteCity)
+            try {
+                _actionShowProgressBar.value = true
+                block()
+            } catch (e: Exception) {
+                _errorMessage.value = "Something went wrong"
+            }
+            _actionShowProgressBar.value = false
         }
     }
 
@@ -69,6 +84,10 @@ class CitiesViewModel(
 
     fun addNewCityCompleted() {
         _actionAddNewCity.value = false
+    }
+
+    fun errorMessageCompleted() {
+        _errorMessage.value = null
     }
 
     class Factory(
