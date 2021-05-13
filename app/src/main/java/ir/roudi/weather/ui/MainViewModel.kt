@@ -8,6 +8,8 @@ class MainViewModel(
     private val repository: Repository
 ) : ViewModel() {
 
+    val cities = repository.cities
+
     private val _hasDataFetched = MutableLiveData<Boolean>()
     val hasDataFetched : LiveData<Boolean>
         get() = _hasDataFetched

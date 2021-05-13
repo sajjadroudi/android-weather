@@ -1,7 +1,5 @@
 package ir.roudi.weather.ui
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -17,6 +15,7 @@ import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.RetrofitHelper
+import ir.roudi.weather.utils.isInternetConnected
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         swipeRefresh.setOnRefreshListener {
-            if(isConnected()) {
+            if(isInternetConnected()) {
                 viewModel.refresh()
             } else {
                 Toast.makeText(this, "No Internet", Toast.LENGTH_SHORT).show()
@@ -47,24 +46,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        viewModel.cities.observe(this) {
+            viewModel.refresh()
+        }
+
         viewModel.hasDataFetched.observe(this) {
             if(it == true)
                 swipeRefresh.isRefreshing = false
         }
 
-        if(isConnected()) {
+        if(isInternetConnected()) {
             viewModel.refresh()
         } else {
             (application as WeatherApp).enqueueSyncWork()
         }
-    }
-
-    private fun isConnected(): Boolean {
-        // TODO: `activeNetworkInfo` is deprecated in android 10, use `NetworkCallbacks` for apps with android 10 and higher
-        val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork = manager.activeNetworkInfo
-        val isConnected = activeNetwork?.isConnectedOrConnecting == true
-        return isConnected
     }
 
     companion object {
