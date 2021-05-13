@@ -12,6 +12,8 @@ class WeatherViewModel(
 
     private val selectedCityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
 
+    val existsSelectedCity = selectedCityId != 0
+
     val selectedCity = repository.getCity(selectedCityId)
 
     val weather = repository.getWeather(selectedCityId)

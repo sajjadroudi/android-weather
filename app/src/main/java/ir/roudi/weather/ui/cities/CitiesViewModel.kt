@@ -31,6 +31,9 @@ class CitiesViewModel(
         viewModelScope.launch {
             repository.deleteCity(city)
         }
+
+        if(city.cityId == selectedCityId.value)
+            repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, 0)
     }
 
     fun insertCity(latitude: Double, longitude: Double) {
