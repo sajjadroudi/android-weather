@@ -57,8 +57,4 @@ class MainActivity : AppCompatActivity() {
             (application as WeatherApp).enqueueSyncWork()
         }
     }
-
-    companion object {
-        const val TAG = "MainActivity"
-    }
 }

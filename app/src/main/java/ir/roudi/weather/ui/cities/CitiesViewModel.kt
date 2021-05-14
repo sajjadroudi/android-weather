@@ -89,15 +89,15 @@ class CitiesViewModel(
         _actionAddNewCity.value = true
     }
 
-    fun addNewCityCompleted() {
+    fun addingNewCityCompleted() {
         _actionAddNewCity.value = false
     }
 
-    fun errorMessageCompleted() {
+    fun showingErrorMessageCompleted() {
         _errorMessage.value = null
     }
 
-    fun updateWidgetCompleted() {
+    fun updatingWidgetCompleted() {
         _shouldUpdateWidget.value = false
     }
 
@@ -108,7 +108,7 @@ class CitiesViewModel(
             if(modelClass.isAssignableFrom(CitiesViewModel::class.java)) {
                 return CitiesViewModel(repository) as T
             }
-            throw IllegalArgumentException("Can't cast to CitiesViewModel")
+            throw IllegalArgumentException("Can't cast to CitiesViewModel.")
         }
     }
 }

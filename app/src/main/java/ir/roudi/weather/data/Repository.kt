@@ -4,8 +4,6 @@ import ir.roudi.weather.data.local.db.dao.CityDao
 import ir.roudi.weather.data.local.db.dao.WeatherDao
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.Service
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import ir.roudi.weather.data.local.db.entity.City as LocalCity
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 import ir.roudi.weather.data.remote.response.Weather as RemoteWeather
@@ -14,8 +12,7 @@ class Repository(
     private val cityDao: CityDao,
     private val weatherDao: WeatherDao,
     private val service: Service,
-    private val sharedPref: SharedPrefHelper,
-    private val coroutineScope: CoroutineScope = GlobalScope
+    private val sharedPref: SharedPrefHelper
 ) {
 
     val cities = cityDao.getAllCities()

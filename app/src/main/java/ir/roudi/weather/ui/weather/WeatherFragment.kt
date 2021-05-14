@@ -16,14 +16,17 @@ import ir.roudi.weather.databinding.FragmentWeatherBinding
 
 class WeatherFragment : Fragment() {
 
+    private lateinit var binding : FragmentWeatherBinding
+
     private val viewModel by viewModels<WeatherViewModel> {
         val db = AppDatabase.getInstance(requireContext())
-        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, SharedPrefHelper(requireContext()))
+        val pref = SharedPrefHelper(requireContext())
+        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, pref)
         WeatherViewModel.Factory(repository)
     }
 
     private val moreDetailsDialog : AlertDialog by lazy {
-        val dialogBinding = DialogWeatherDetailsBinding.inflate(layoutInflater, view as ViewGroup, false)
+        val dialogBinding = DialogWeatherDetailsBinding.inflate(layoutInflater, binding.root as ViewGroup, false)
         dialogBinding.lifecycleOwner = viewLifecycleOwner
         dialogBinding.weather = viewModel.uiWeather
 
@@ -33,8 +36,6 @@ class WeatherFragment : Fragment() {
                 .setPositiveButton(android.R.string.ok, null)
                 .create()
     }
-
-    private lateinit var binding : FragmentWeatherBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,

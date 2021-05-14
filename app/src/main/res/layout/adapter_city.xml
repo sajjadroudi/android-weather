@@ -12,7 +12,7 @@
             type="int" />
         <variable
             name="callback"
-            type="ir.roudi.weather.ui.cities.CitiesAdapter.AdapterCallback" />
+            type="ir.roudi.weather.ui.cities.CitiesAdapter.ItemCallback" />
     </data>
 
     <LinearLayout
@@ -40,7 +40,7 @@
             android:src="@drawable/ic_baseline_edit_24"
             android:padding="12dp"
             android:background="#0000"
-            android:onClick="@{() -> callback.onChange(city)}"/>
+            android:onClick="@{() -> callback.onEdit(city)}"/>
 
         <ImageButton
             android:id="@+id/btn_delete"

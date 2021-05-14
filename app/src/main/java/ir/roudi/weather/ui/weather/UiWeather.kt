@@ -1,6 +1,7 @@
 package ir.roudi.weather.ui.weather
 
 import java.text.SimpleDateFormat
+import java.util.*
 import ir.roudi.weather.data.local.db.entity.Weather as LocalWeather
 
 data class UiWeather(
@@ -25,8 +26,13 @@ data class UiWeather(
             return if(data == null) {
                 "-"
             } else {
-                "$data $unit"
+                "$data $unit".trim()
             }
+        }
+
+        private fun format(pattern: String, calendar: Calendar?): String {
+            calendar ?: return "-"
+            return SimpleDateFormat(pattern).format(calendar.timeInMillis)
         }
 
         fun from(weather: LocalWeather?) : UiWeather? {
@@ -45,9 +51,9 @@ data class UiWeather(
                         stringify(it.cloudinessPercent, "%"),
                         stringify(it.lastHourRainVolume, "mm"),
                         stringify(it.lastHourSnowVolume, "mm"),
-                        SimpleDateFormat("MMM d, yyyy h:mm a").format(it.time.timeInMillis),
-                        SimpleDateFormat("MMM d, HH:mm:ss").format(it.sunrise?.timeInMillis),
-                        SimpleDateFormat("MMM d, HH:mm:ss").format(it.sunset?.timeInMillis),
+                        format("MMM d, yyyy h:mm a", it.time),
+                        format("MMM d, HH:mm:ss", it.sunrise),
+                        format("MMM d, HH:mm:ss", it.sunset),
                 )
             }
         }

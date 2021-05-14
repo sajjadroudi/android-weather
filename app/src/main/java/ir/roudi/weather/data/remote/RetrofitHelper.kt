@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitHelper {
 
-    const val BASE_URL = "https://api.openweathermap.org/"
-    const val API_URL = "${BASE_URL}data/2.5/"
+    private const val BASE_URL = "https://api.openweathermap.org/"
+    private const val API_URL = "${BASE_URL}data/2.5/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(MainInterceptor())

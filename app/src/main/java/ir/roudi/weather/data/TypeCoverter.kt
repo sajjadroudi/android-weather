@@ -44,35 +44,10 @@ fun List<RemoteWeather>.toLocalWeather(cities: List<City>) : List<LocalWeather> 
     return list
 }
 
-fun LocalWeather.toRemoteWeather() : RemoteWeather = RemoteWeather(
-        main,
-        description,
-        iconId,
-        temperature,
-        pressure,
-        humidityPercent,
-        minTemperature,
-        maxTemperature,
-        windSpeed,
-        cloudinessPercent,
-        lastHourRainVolume,
-        lastHourSnowVolume,
-        time,
-        sunrise,
-        sunset
-)
-
 fun RemoteCity.toLocalCity() : LocalCity = LocalCity(
         id,
         name,
         countryCode,
         coordinates.longitude,
         coordinates.latitude
-)
-
-fun LocalCity.toRemoteCity() : RemoteCity = RemoteCity(
-        cityId,
-        name,
-        countryCode,
-        coordinates = Coordinates(longitude, latitude)
 )

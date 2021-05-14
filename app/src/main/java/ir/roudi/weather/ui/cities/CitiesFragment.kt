@@ -45,14 +45,23 @@ import ir.roudi.weather.data.remote.response.City as RemoteCity
 
 class CitiesFragment : Fragment() {
 
+    private val fusedLocationClient: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(requireContext())
+    }
+
+    private lateinit var binding : FragmentCitiesBinding
+
+    private val locationPermission = Manifest.permission.ACCESS_COARSE_LOCATION
+
     private val viewModel by viewModels<CitiesViewModel> {
         val db = AppDatabase.getInstance(requireContext())
-        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, SharedPrefHelper(requireContext()))
+        val sharedPref = SharedPrefHelper(requireContext())
+        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, sharedPref)
         CitiesViewModel.Factory(repository)
     }
 
     private val adapter : CitiesAdapter by lazy {
-        CitiesAdapter(object : CitiesAdapter.AdapterCallback {
+        CitiesAdapter(object : CitiesAdapter.ItemCallback {
             override fun onClick(city: City) {
                 viewModel.setSelectedCityId(city.cityId)
             }
@@ -63,12 +72,12 @@ class CitiesFragment : Fragment() {
                 }
             }
 
-            override fun onChange(city: City) {
+            override fun onEdit(city: City) {
                 showEditDialog(city) { newCity ->
                     viewModel.updateCity(newCity)
 
-                    val position = adapter.currentList.indexOfFirst { it.cityId == city.cityId }
-                    if(position >= 0) adapter.notifyItemChanged(position)
+                    val index = adapter.currentList.indexOfFirst { it.cityId == city.cityId }
+                    if(index >= 0) adapter.notifyItemChanged(index)
                 }
             }
 
@@ -108,15 +117,6 @@ class CitiesFragment : Fragment() {
         })
     }
 
-    private val fusedLocationClient: FusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(requireContext())
-    }
-
-    private lateinit var binding : FragmentCitiesBinding
-
-    private val locationPermission = if(DEBUG_MODE) Manifest.permission.ACCESS_FINE_LOCATION
-    else Manifest.permission.ACCESS_COARSE_LOCATION
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -124,18 +124,14 @@ class CitiesFragment : Fragment() {
     ): View? {
         setupBinding(inflater, container)
 
-        viewModel.cities.observe(viewLifecycleOwner) {
-            adapter.submitList(it)
-        }
-
         viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
             message ?: return@observe
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            viewModel.errorMessageCompleted()
+            viewModel.showingErrorMessageCompleted()
         }
 
         viewModel.actionAddNewCity.observe(viewLifecycleOwner) {
-            if(it == null || it == false) return@observe
+            if(it != true) return@observe
 
             showAddCityDialog { useCurrentLocation ->
                 if(useCurrentLocation) saveLastLocationAsCity()
@@ -149,7 +145,7 @@ class CitiesFragment : Fragment() {
                 )
             }
 
-            viewModel.addNewCityCompleted()
+            viewModel.addingNewCityCompleted()
         }
 
         viewModel.selectedCityId.observe(viewLifecycleOwner) {
@@ -161,18 +157,18 @@ class CitiesFragment : Fragment() {
         viewModel.shouldUpdateWidget.observe(viewLifecycleOwner) {
             if(it != true) return@observe
 
-            val ids = AppWidgetManager.getInstance(context).getAppWidgetIds(
+            val widgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(
                     ComponentName(requireContext(), WeatherAppWidgetProvider::class.java)
             )
 
             val intent = Intent(context, WeatherAppWidgetProvider::class.java).apply {
                 action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
             }
 
             requireActivity().sendBroadcast(intent)
 
-            viewModel.updateWidgetCompleted()
+            viewModel.updatingWidgetCompleted()
         }
 
         return binding.root
@@ -239,11 +235,9 @@ class CitiesFragment : Fragment() {
                     }
                 }
             }
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
         })
-
 
         AlertDialog.Builder(context)
                 .setPositiveButton("Add") { _, _->
@@ -271,8 +265,11 @@ class CitiesFragment : Fragment() {
             override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                 fusedLocationClient.lastLocation
                         .addOnSuccessListener { location: Location? ->
-                            location ?: return@addOnSuccessListener
-                            viewModel.insertCity(location.latitude, location.longitude)
+                            if(location == null) {
+                                Toast.makeText(context, "No location has been registered", Toast.LENGTH_LONG).show()
+                            } else {
+                                viewModel.insertCity(location.latitude, location.longitude)
+                            }
                         }.addOnFailureListener {
                             Toast.makeText(context, "Could not get location due to ${it.message}", Toast.LENGTH_LONG).show()
                         }
@@ -292,11 +289,6 @@ class CitiesFragment : Fragment() {
                 .withPermission(locationPermission)
                 .withListener(compositePermissionListener)
                 .check()
-    }
-
-    companion object {
-        const val DEBUG_MODE = true
-        const val TAG = "CitiesFragment"
     }
 
 }

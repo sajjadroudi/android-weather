@@ -9,7 +9,7 @@ import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.databinding.AdapterCityBinding
 
 class CitiesAdapter(
-    private val callback: AdapterCallback
+    private val callback: ItemCallback
 ) : ListAdapter<City, CitiesAdapter.CityViewHolder>(DiffCallback()) {
 
     var selectedCityId : Int = 0
@@ -24,18 +24,18 @@ class CitiesAdapter(
     }
 
     fun notifySelectedCityChanged(oldCityId: Int, newCityId: Int) {
-        val firstPos = currentList.indexOfFirst { it.cityId == oldCityId }
-        if(firstPos >= 0) notifyItemChanged(firstPos)
+        var index = currentList.indexOfFirst { it.cityId == oldCityId }
+        if(index >= 0) notifyItemChanged(index)
 
-        val secondPos = currentList.indexOfFirst { it.cityId == newCityId }
-        if(secondPos >= 0) notifyItemChanged(secondPos)
+        index = currentList.indexOfFirst { it.cityId == newCityId }
+        if(index >= 0) notifyItemChanged(index)
     }
 
     class CityViewHolder private constructor(
         private val binding: AdapterCityBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(city: City, selectedCityId: Int, callback: AdapterCallback) {
+        fun bind(city: City, selectedCityId: Int, callback: ItemCallback) {
             binding.city = city
             binding.selectedCityId = selectedCityId
             binding.callback = callback
@@ -50,20 +50,19 @@ class CitiesAdapter(
         }
     }
 
-    // TODO: check true implementation
     class DiffCallback : DiffUtil.ItemCallback<City>() {
         override fun areItemsTheSame(oldItem: City, newItem: City): Boolean {
             return oldItem.cityId == newItem.cityId
         }
 
         override fun areContentsTheSame(oldItem: City, newItem: City): Boolean {
-            return oldItem == newItem
+            return newItem.name == oldItem.name
         }
     }
 
-    interface AdapterCallback {
+    interface ItemCallback {
         fun onClick(city: City)
         fun onDelete(city: City)
-        fun onChange(city: City)
+        fun onEdit(city: City)
     }
 }

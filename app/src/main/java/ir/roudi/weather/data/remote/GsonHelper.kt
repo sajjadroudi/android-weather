@@ -13,8 +13,8 @@ import java.util.*
 object GsonHelper {
     val gsonBuilder: Gson by lazy {
         GsonBuilder()
-                .registerTypeAdapter(City::class.java, JsonDeserializer(::cityDeserializer))
-                .registerTypeAdapter(Weather::class.java, JsonDeserializer(::weatherDeserializer))
+                .registerTypeAdapter(City::class.java, JsonDeserializer(::deserializeCity))
+                .registerTypeAdapter(Weather::class.java, JsonDeserializer(::deserializeWeather))
                 .setLenient()
                 .create()
     }
@@ -24,7 +24,7 @@ object GsonHelper {
                 .addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
     }
 
-    private fun cityDeserializer(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext) : City {
+    private fun deserializeCity(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext) : City {
         val obj = json.asJsonObject!!
 
         return City(
@@ -35,7 +35,7 @@ object GsonHelper {
         )
     }
 
-    private fun weatherDeserializer(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?) : Weather {
+    private fun deserializeWeather(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?) : Weather {
         val obj = json?.asJsonObject!!
 
         val weather = obj.getAsJsonArray("weather")[0].asJsonObject
@@ -46,8 +46,9 @@ object GsonHelper {
         val snow = obj.getAsJsonObject("snow")?.getAsJsonPrimitive("1h")?.asDouble
 
         val sys = obj.getAsJsonObject("sys")
-        val sunrise = toCalendar(sys?.getAsJsonPrimitive("sunrise")?.asLong?.times(1000))
-        val sunset = toCalendar(sys?.getAsJsonPrimitive("sunset")?.asLong?.times(1000))
+        val sunrise = toCalendar(sys?.getAsJsonPrimitive("sunrise")?.asLong)
+        val sunset = toCalendar(sys?.getAsJsonPrimitive("sunset")?.asLong)
+        val time = toCalendar(obj.get("dt").asLong)!!
 
         return Weather(
                 weather.get("main").asString,
@@ -62,7 +63,7 @@ object GsonHelper {
                 cloudiness,
                 rain,
                 snow,
-                Calendar.getInstance().apply { timeInMillis = obj.get("dt").asLong * 1000 },
+                time,
                 sunrise,
                 sunset
         )
@@ -78,7 +79,7 @@ object GsonHelper {
 
     private fun toCalendar(timeStamp: Long?): Calendar? {
         timeStamp ?: return null
-        return Calendar.getInstance().apply { timeInMillis = timeStamp }
+        return Calendar.getInstance().apply { timeInMillis = timeStamp*1000 }
     }
 
 }

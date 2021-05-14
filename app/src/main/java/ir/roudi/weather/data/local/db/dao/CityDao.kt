@@ -7,7 +7,7 @@ import ir.roudi.weather.data.local.db.entity.City
 @Dao
 interface CityDao {
 
-    @Query("SELECT * FROM city")
+    @Query("SELECT * FROM city ORDER BY name")
     fun getAllCities() : LiveData<List<City>>
 
     @Query("SELECT * FROM city WHERE city_id=:cityId")
