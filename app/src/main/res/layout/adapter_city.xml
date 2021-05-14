@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <import type="android.view.View"/>
         <variable
             name="city"
             type="ir.roudi.weather.data.local.db.entity.City" />
@@ -15,40 +17,53 @@
             type="ir.roudi.weather.ui.cities.CitiesAdapter.ItemCallback" />
     </data>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@{city.cityId == selectedCityId ? @color/purple_200 : @color/white}">
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@{city.cityId == selectedCityId ? @color/gray : @color/white}">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@{city.name}"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:gravity="center"
+                android:padding="12dp"
+                tools:text="Tehran"
+                android:onClick="@{() -> callback.onClick(city)}"/>
+
+            <ImageButton
+                android:id="@+id/btn_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_baseline_edit_24"
+                android:padding="12dp"
+                android:background="#0000"
+                android:onClick="@{() -> callback.onEdit(city)}"/>
+
+            <ImageButton
+                android:id="@+id/btn_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_baseline_delete_24"
+                android:padding="12dp"
+                android:background="#0000"
+                android:onClick="@{() -> callback.onDelete(city)}"/>
+        </LinearLayout>
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@{city.name}"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:gravity="center"
-            android:padding="12dp"
-            tools:text="Tehran"
-            android:onClick="@{() -> callback.onClick(city)}"/>
-
-        <ImageButton
-            android:id="@+id/btn_edit"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_baseline_edit_24"
-            android:padding="12dp"
-            android:background="#0000"
-            android:onClick="@{() -> callback.onEdit(city)}"/>
-
-        <ImageButton
-            android:id="@+id/btn_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_baseline_delete_24"
-            android:padding="12dp"
-            android:background="#0000"
-            android:onClick="@{() -> callback.onDelete(city)}"/>
-    </LinearLayout>
+            android:text="Current Location"
+            android:layout_gravity="bottom|start"
+            android:textSize="10sp"
+            android:visibility="@{city.cityId == selectedCityId ? View.VISIBLE : View.GONE}"/>
+    </FrameLayout>
 </layout>
