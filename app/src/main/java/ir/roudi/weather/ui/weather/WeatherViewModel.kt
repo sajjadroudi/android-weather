@@ -1,12 +1,16 @@
 package ir.roudi.weather.ui.weather
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.db.entity.Weather
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
-import java.lang.IllegalArgumentException
+import javax.inject.Inject
 
-class WeatherViewModel(
+@HiltViewModel
+class WeatherViewModel @Inject constructor(
         private val repository: Repository
 ) : ViewModel() {
 
@@ -34,14 +38,4 @@ class WeatherViewModel(
         _actionShowMoreDetailsDialog.value = false
     }
 
-    class Factory(
-            private val repository: Repository
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            if(modelClass.isAssignableFrom(WeatherViewModel::class.java)) {
-                return WeatherViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Can't cast to WeatherViewModel")
-        }
-    }
 }

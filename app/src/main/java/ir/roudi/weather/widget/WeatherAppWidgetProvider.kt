@@ -7,30 +7,25 @@ import android.content.Context
 import android.content.Intent
 import android.view.View
 import android.widget.RemoteViews
+import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.R
 import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.db.AppDatabase
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
-import ir.roudi.weather.data.remote.RetrofitHelper
 import ir.roudi.weather.ui.MainActivity
 import ir.roudi.weather.utils.getBitmap
 import ir.roudi.weather.utils.observeOnce
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.IOException
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WeatherAppWidgetProvider : AppWidgetProvider() {
+
+    @Inject lateinit var repository: Repository
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-
-        val db = AppDatabase.getInstance(context)
-        val repository = Repository(
-                db.cityDao,
-                db.weatherDao,
-                RetrofitHelper.service,
-                SharedPrefHelper(context)
-        )
 
         val cityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
         if(cityId == 0) {

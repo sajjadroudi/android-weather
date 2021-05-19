@@ -9,22 +9,16 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.R
 import ir.roudi.weather.WeatherApp
-import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.db.AppDatabase
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
-import ir.roudi.weather.data.remote.RetrofitHelper
 import ir.roudi.weather.utils.isInternetConnected
 import ir.roudi.weather.utils.observeOnce
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val viewModel by viewModels<MainViewModel> {
-        val db = AppDatabase.getInstance(this)
-        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, SharedPrefHelper(this))
-        MainViewModel.Factory(repository)
-    }
+    private val viewModel : MainViewModel by viewModels()
 
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)

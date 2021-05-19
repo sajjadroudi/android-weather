@@ -4,11 +4,14 @@ import ir.roudi.weather.data.local.db.dao.CityDao
 import ir.roudi.weather.data.local.db.dao.WeatherDao
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.data.remote.Service
+import javax.inject.Inject
+import javax.inject.Singleton
 import ir.roudi.weather.data.local.db.entity.City as LocalCity
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 import ir.roudi.weather.data.remote.response.Weather as RemoteWeather
 
-class Repository(
+@Singleton
+class Repository @Inject constructor(
     private val cityDao: CityDao,
     private val weatherDao: WeatherDao,
     private val service: Service,

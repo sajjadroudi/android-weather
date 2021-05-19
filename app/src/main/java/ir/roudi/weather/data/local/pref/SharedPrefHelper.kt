@@ -2,9 +2,13 @@ package ir.roudi.weather.data.local.pref
 
 import android.content.Context
 import android.content.SharedPreferences
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SharedPrefHelper(
-        private val context: Context
+@Singleton
+class SharedPrefHelper @Inject constructor(
+        @ApplicationContext private val context: Context
 ) {
 
     private val pref : SharedPreferences

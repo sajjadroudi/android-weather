@@ -1,11 +1,14 @@
 package ir.roudi.weather.ui
 
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.roudi.weather.data.Repository
 import kotlinx.coroutines.launch
 import java.io.IOException
+import javax.inject.Inject
 
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
@@ -34,17 +37,6 @@ class MainViewModel(
 
     fun showingErrorCompleted() {
         _actionShowError.value = false
-    }
-
-    class Factory(
-        private val repository: Repository
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            if(modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                return MainViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Can't cast to MainViewModel")
-        }
     }
 
 }

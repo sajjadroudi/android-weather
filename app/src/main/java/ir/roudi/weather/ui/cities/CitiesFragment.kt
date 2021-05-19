@@ -28,11 +28,8 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.CompositePermissionListener
 import com.karumi.dexter.listener.single.PermissionListener
 import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener
-import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.db.AppDatabase
+import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.data.local.db.entity.City
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
-import ir.roudi.weather.data.remote.RetrofitHelper
 import ir.roudi.weather.databinding.DialogAddCityBinding
 import ir.roudi.weather.databinding.DialogEditCityBinding
 import ir.roudi.weather.databinding.DialogFindCityBinding
@@ -42,7 +39,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 
-
+@AndroidEntryPoint
 class CitiesFragment : Fragment() {
 
     private val fusedLocationClient: FusedLocationProviderClient by lazy {
@@ -53,12 +50,7 @@ class CitiesFragment : Fragment() {
 
     private val locationPermission = Manifest.permission.ACCESS_COARSE_LOCATION
 
-    private val viewModel by viewModels<CitiesViewModel> {
-        val db = AppDatabase.getInstance(requireContext())
-        val sharedPref = SharedPrefHelper(requireContext())
-        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, sharedPref)
-        CitiesViewModel.Factory(repository)
-    }
+    private val viewModel : CitiesViewModel by viewModels()
 
     private val adapter : CitiesAdapter by lazy {
         CitiesAdapter(object : CitiesAdapter.ItemCallback {

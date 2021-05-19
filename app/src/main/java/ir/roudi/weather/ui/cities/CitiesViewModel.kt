@@ -1,13 +1,16 @@
 package ir.roudi.weather.ui.cities
 
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 
-class CitiesViewModel(
+@HiltViewModel
+class CitiesViewModel @Inject constructor(
         private val repository: Repository
 ) : ViewModel() {
 
@@ -101,14 +104,4 @@ class CitiesViewModel(
         _shouldUpdateWidget.value = false
     }
 
-    class Factory(
-            private val repository: Repository
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            if(modelClass.isAssignableFrom(CitiesViewModel::class.java)) {
-                return CitiesViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Can't cast to CitiesViewModel.")
-        }
-    }
 }

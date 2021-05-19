@@ -2,28 +2,22 @@ package ir.roudi.weather.work
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.db.AppDatabase
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
-import ir.roudi.weather.data.remote.RetrofitHelper
 import retrofit2.HttpException
 
-class RefreshDataWorker(
-    appContext: Context,
-    params: WorkerParameters
+@HiltWorker
+class RefreshDataWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted params: WorkerParameters,
+    private val repository: Repository
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        val db = AppDatabase.getInstance(applicationContext)
-        val repository = Repository(
-                db.cityDao,
-                db.weatherDao,
-                RetrofitHelper.service,
-                SharedPrefHelper(applicationContext)
-        )
-
         try {
             repository.refresh()
             Log.i("RefreshDataWorker", "WorkManager: Work request for sync is run")

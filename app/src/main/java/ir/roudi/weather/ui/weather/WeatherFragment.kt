@@ -2,28 +2,21 @@ package ir.roudi.weather.ui.weather
 
 import android.app.AlertDialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.db.AppDatabase
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
-import ir.roudi.weather.data.remote.RetrofitHelper
+import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.databinding.DialogWeatherDetailsBinding
 import ir.roudi.weather.databinding.FragmentWeatherBinding
 
+@AndroidEntryPoint
 class WeatherFragment : Fragment() {
 
     private lateinit var binding : FragmentWeatherBinding
 
-    private val viewModel by viewModels<WeatherViewModel> {
-        val db = AppDatabase.getInstance(requireContext())
-        val pref = SharedPrefHelper(requireContext())
-        val repository = Repository(db.cityDao, db.weatherDao, RetrofitHelper.service, pref)
-        WeatherViewModel.Factory(repository)
-    }
+    private val viewModel : WeatherViewModel by viewModels()
 
     private val moreDetailsDialog : AlertDialog by lazy {
         val dialogBinding = DialogWeatherDetailsBinding.inflate(layoutInflater, binding.root as ViewGroup, false)
