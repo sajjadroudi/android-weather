@@ -2,9 +2,13 @@ package ir.roudi.weather.ui.cities
 
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.roudi.weather.data.Event
 import ir.roudi.weather.data.Repository
+import ir.roudi.weather.data.Result
+import ir.roudi.weather.data.Result.Status.*
 import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import ir.roudi.weather.data.remote.response.City as RemoteCity
@@ -16,8 +20,8 @@ class CitiesViewModel @Inject constructor(
 
     val cities = repository.cities
 
-    private val _actionAddNewCity = MutableLiveData(false)
-    val actionAddNewCity: LiveData<Boolean>
+    private val _actionAddNewCity = MutableLiveData(Event(false))
+    val actionAddNewCity: LiveData<Event<Boolean>>
         get() = _actionAddNewCity
 
     private val _selectedCityId = MutableLiveData(
@@ -33,48 +37,59 @@ class CitiesViewModel @Inject constructor(
     val actionShowProgressBar : LiveData<Boolean>
         get() = _actionShowProgressBar
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage : LiveData<String?>
-        get() = _errorMessage
+    private val _error = MutableLiveData<Event<String>>()
+    val error : LiveData<Event<String>>
+        get() = _error
 
-    private val _shouldUpdateWidget = MutableLiveData(false)
-    val shouldUpdateWidget : LiveData<Boolean>
+    private val _shouldUpdateWidget = MutableLiveData(Event(false))
+    val shouldUpdateWidget : LiveData<Event<Boolean>>
         get() = _shouldUpdateWidget
+
+    private val _message = MutableLiveData<Event<String>>()
+    val message : LiveData<Event<String>>
+        get() = _message
 
     fun deleteCity(city: City) {
         viewModelScope.launch {
             repository.deleteCity(city)
+            notifyUser("Deleted!")
         }
 
         if(city.cityId == selectedCityId.value) {
             repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, 0)
-            _shouldUpdateWidget.value = true
+            _shouldUpdateWidget.value = Event(true)
         }
     }
 
     fun insertCity(latitude: Double, longitude: Double) {
-        handle { repository.insertCity(latitude, longitude) }
+        viewModelScope.launch {
+            repository.insertCity(latitude, longitude).collect(::handleInsertion)
+        }
     }
 
     fun insertCity(remoteCity: RemoteCity) {
-        handle { repository.insertCity(remoteCity) }
+        viewModelScope.launch {
+            repository.insertCity(remoteCity).collect(::handleInsertion)
+        }
     }
 
-    private fun handle(block: suspend () -> Unit) {
-        viewModelScope.launch {
-            try {
-                _actionShowProgressBar.value = true
-                block()
-            } catch (e: Exception) {
-                _errorMessage.value = "Something went wrong"
-            }
-            _actionShowProgressBar.value = false
+    private fun<T> handleInsertion(result: Result<T>?) {
+        if(result == null) return
+
+        _actionShowProgressBar.value = result.isLoading
+
+        when(result.status) {
+            ERROR ->
+                showError(result.message)
+            SUCCESS ->
+                notifyUser(result.message)
         }
     }
 
     fun updateCity(newCity: City) {
         viewModelScope.launch {
             repository.updateCity(newCity)
+            notifyUser("Updated!")
         }
     }
 
@@ -85,23 +100,19 @@ class CitiesViewModel @Inject constructor(
         oldSelectedCityId = _selectedCityId.value ?: repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
         repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
         _selectedCityId.value = cityId
-        _shouldUpdateWidget.value = true
+        _shouldUpdateWidget.value = Event(true)
     }
 
     fun addNewCity() {
-        _actionAddNewCity.value = true
+        _actionAddNewCity.value = Event(true)
     }
 
-    fun addingNewCityCompleted() {
-        _actionAddNewCity.value = false
+    fun showError(message: String?) {
+        message?.let { _error.value = Event(it) }
     }
 
-    fun showingErrorMessageCompleted() {
-        _errorMessage.value = null
-    }
-
-    fun updatingWidgetCompleted() {
-        _shouldUpdateWidget.value = false
+    private fun notifyUser(message: String?) {
+        message?.let { _message.value = Event(it) }
     }
 
 }

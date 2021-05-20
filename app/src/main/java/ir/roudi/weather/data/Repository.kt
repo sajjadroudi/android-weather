@@ -1,9 +1,13 @@
 package ir.roudi.weather.data
 
+import androidx.lifecycle.liveData
 import ir.roudi.weather.data.local.db.dao.CityDao
 import ir.roudi.weather.data.local.db.dao.WeatherDao
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
+import ir.roudi.weather.data.remote.SafeApiCall
 import ir.roudi.weather.data.remote.Service
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 import ir.roudi.weather.data.local.db.entity.City as LocalCity
@@ -16,21 +20,35 @@ class Repository @Inject constructor(
     private val weatherDao: WeatherDao,
     private val service: Service,
     private val sharedPref: SharedPrefHelper
-) {
+) : SafeApiCall() {
 
     val cities = cityDao.getAllCities()
 
-    suspend fun insertCity(latitude: Double, longitude: Double) {
-        val remoteCity = service.getCity(latitude, longitude)
-        if(!remoteCity.isValid()) return
-        cityDao.insert(remoteCity.toLocalCity())
+    suspend fun insertCity(latitude: Double, longitude: Double) = flow<Result<Nothing>?> {
+        emit(Result.loading())
 
-        refreshWeather(remoteCity.id)
+        val response = apiCall { service.getCity(latitude, longitude) }
+        if(response.isSuccessful) {
+            val remoteCity = response.data!!
+            if (remoteCity.isValid()) {
+                insertCity(remoteCity).collect { emit(it) }
+            } else {
+                emit(Result.error("No city found!"))
+            }
+        } else emit(response.toNothingWrapper())
     }
 
-    suspend fun insertCity(remoteCity: RemoteCity) {
+    suspend fun insertCity(remoteCity: RemoteCity) = flow<Result<Nothing>?> {
+        emit(Result.loading())
+
         cityDao.insert(remoteCity.toLocalCity())
-        refreshWeather(remoteCity.id)
+        emit(Result.success("City saved!"))
+
+        refreshWeather(remoteCity.id).collect {
+            if(it?.errorOccurred == true) {
+                emit(Result.error("Couldn't fetch weather"))
+            }
+        }
     }
 
     suspend fun deleteCity(city: LocalCity) =
@@ -41,26 +59,51 @@ class Repository @Inject constructor(
 
     fun getCity(cityId: Int) = cityDao.getCity(cityId)
 
-    suspend fun findCity(name: String) = service.findCity(name)
+    suspend fun findCity(name: String) = flow<Result<RemoteCity?>?> {
+        emit(Result.loading())
+        apiCall { service.findCity(name) }
+                .let { emit(it) }
+    }
 
     fun getWeather(cityId: Int) = weatherDao.getWeather(cityId)
 
-    suspend fun refreshWeather(cityId: Int) {
-        val remoteWeather = service.getWeather(cityId)
-        weatherDao.insert(remoteWeather.toLocalWeather(cityId))
+    fun fetchWeather(cityId: Int) = liveData {
+        apiCall { service.getWeather(cityId) }
+                .takeIf { it.isSuccessful }
+                ?.let { weatherDao.insert(it.data!!.toLocalWeather(cityId)) }
+
+        emitSource(weatherDao.getWeather(cityId))
     }
 
-    suspend fun refresh() {
-        val cities = this.cities.value ?: listOf()
+    private suspend fun refreshWeather(cityId: Int) = flow<Result<Nothing>?> {
+        emit(Result.loading())
+
+        apiCall { service.getWeather(cityId) }
+                .also { emit(it.toNothingWrapper()) }
+                .takeIf { it.isSuccessful }
+                ?.let { weatherDao.insert(it.data!!.toLocalWeather(cityId)) }
+    }
+
+    suspend fun refresh() = flow<Result<Nothing>?> {
+        emit(Result.loading())
+
+        val cities = this@Repository.cities.value ?: listOf()
 
         val remoteWeathers = mutableListOf<RemoteWeather>()
+
         cities.forEach { city ->
-            val weather = service.getWeather(city.cityId)
-            remoteWeathers.add(weather)
+            val response = apiCall { service.getWeather(city.cityId) }
+            if(!response.isSuccessful) {
+                emit(response.toNothingWrapper())
+                return@flow
+            }
+            remoteWeathers.add(response.data!!)
         }
 
-        val localWeathers = remoteWeathers.toLocalWeather(cities)
-        weatherDao.insert(localWeathers)
+        remoteWeathers.toLocalWeather(cities)
+                .let { weatherDao.insert(it) }
+
+        emit(Result.success())
     }
 
     fun setInt(key: String, value: Int) =
@@ -68,5 +111,9 @@ class Repository @Inject constructor(
 
     fun getInt(key: String, defValue: Int = 0) =
         sharedPref.getInt(key, defValue)
+
+    private fun Result<*>.toNothingWrapper() : Result<Nothing> {
+        return Result(status, null, message)
+    }
 
 }

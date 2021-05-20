@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ir.roudi.weather.data.Event
 import ir.roudi.weather.data.Repository
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import javax.inject.Inject
@@ -26,16 +27,12 @@ class WeatherViewModel @Inject constructor(
         UiWeather.from(it)
     }
 
-    private val _actionShowMoreDetailsDialog = MutableLiveData(false)
-    val actionShowMoreDetailsDialog : LiveData<Boolean>
+    private val _actionShowMoreDetailsDialog = MutableLiveData(Event(false))
+    val actionShowMoreDetailsDialog : LiveData<Event<Boolean>>
         get() = _actionShowMoreDetailsDialog
 
     fun showMoreDetailsDialog() {
-        _actionShowMoreDetailsDialog.value = true
-    }
-
-    fun showingMoreDetailsDialogCompleted() {
-        _actionShowMoreDetailsDialog.value = false
+        _actionShowMoreDetailsDialog.value = Event(true)
     }
 
 }

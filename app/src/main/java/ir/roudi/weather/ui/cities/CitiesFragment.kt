@@ -3,9 +3,6 @@ package ir.roudi.weather.ui.cities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
-import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -14,7 +11,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -34,9 +30,13 @@ import ir.roudi.weather.databinding.DialogAddCityBinding
 import ir.roudi.weather.databinding.DialogEditCityBinding
 import ir.roudi.weather.databinding.DialogFindCityBinding
 import ir.roudi.weather.databinding.FragmentCitiesBinding
-import ir.roudi.weather.widget.WeatherAppWidgetProvider
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import ir.roudi.weather.data.Result
+import ir.roudi.weather.utils.snackbar
+import ir.roudi.weather.utils.updateWidgets
+import kotlinx.coroutines.flow.collect
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 
 @AndroidEntryPoint
@@ -116,28 +116,28 @@ class CitiesFragment : Fragment() {
     ): View? {
         setupBinding(inflater, container)
 
-        viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
-            message ?: return@observe
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            viewModel.showingErrorMessageCompleted()
+        viewModel.error.observe(viewLifecycleOwner) {
+            it?.getContentIfNotHandled()?.let { message ->
+                binding.root.snackbar("Error: $message")
+            }
         }
 
         viewModel.actionAddNewCity.observe(viewLifecycleOwner) {
-            if(it != true) return@observe
-
-            showAddCityDialog { useCurrentLocation ->
-                if(useCurrentLocation) saveLastLocationAsCity()
-                else showFindCityByNameDialog(
-                        findListener = { name ->
-                            viewModel.findCity(name)
-                        },
-                        saveListener = { remoteCity ->
-                            viewModel.insertCity(remoteCity)
-                        }
-                )
+            it?.getContentIfNotHandled()?.let { shouldAddNewCity ->
+                if(shouldAddNewCity) {
+                    showAddCityDialog { useCurrentLocation ->
+                        if(useCurrentLocation) saveLastLocationAsCity()
+                        else showFindCityByNameDialog(
+                                findListener = { name ->
+                                    viewModel.findCity(name)
+                                },
+                                saveListener = { remoteCity ->
+                                    viewModel.insertCity(remoteCity)
+                                }
+                        )
+                    }
+                }
             }
-
-            viewModel.addingNewCityCompleted()
         }
 
         viewModel.selectedCityId.observe(viewLifecycleOwner) {
@@ -147,20 +147,15 @@ class CitiesFragment : Fragment() {
         }
 
         viewModel.shouldUpdateWidget.observe(viewLifecycleOwner) {
-            if(it != true) return@observe
-
-            val widgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(
-                    ComponentName(requireContext(), WeatherAppWidgetProvider::class.java)
-            )
-
-            val intent = Intent(context, WeatherAppWidgetProvider::class.java).apply {
-                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+            it?.getContentIfNotHandled()?.let { shouldUpdate ->
+                if(shouldUpdate) requireActivity().updateWidgets()
             }
+        }
 
-            requireActivity().sendBroadcast(intent)
-
-            viewModel.updatingWidgetCompleted()
+        viewModel.message.observe(viewLifecycleOwner) {
+            it?.getContentIfNotHandled()?.let { message ->
+                binding.root.snackbar(message)
+            }
         }
 
         return binding.root
@@ -197,7 +192,7 @@ class CitiesFragment : Fragment() {
     }
 
     private fun showFindCityByNameDialog(
-            findListener: suspend (name: String) -> RemoteCity?,
+            findListener: suspend (name: String) -> Flow<Result<RemoteCity?>?>,
             saveListener: (RemoteCity) -> Unit
     ) {
         val dialogBinding = DialogFindCityBinding.inflate(
@@ -210,23 +205,38 @@ class CitiesFragment : Fragment() {
         dialogBinding.edtName.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 job?.cancel()
-                job = lifecycleScope.launch {
-                    try {
-                        remoteCity = findListener.invoke(s?.toString() ?: "")
 
-                        dialogBinding.txtName.apply {
-                            text = remoteCity!!.name
-                            setTextColor(Color.BLACK)
-                        }
-                    } catch (e: Exception) {
-                        remoteCity = null
-                        dialogBinding.txtName.apply {
-                            text = "Not Found!"
-                            setTextColor(Color.RED)
+                if(s?.isBlank() == true) {
+                    apply("Enter the city name", Color.BLACK)
+                    return
+                }
+
+                job = lifecycleScope.launch {
+                    findListener.invoke(s?.toString()?.trim() ?: "").collect {
+                        if(it == null) return@collect
+                        when(it.status) {
+                            Result.Status.SUCCESS -> {
+                                remoteCity = it.data!!
+                                apply("Found: ${remoteCity?.name}", Color.BLACK)
+                            }
+
+                            Result.Status.ERROR ->
+                                apply(it.message ?: "Something went wrong", Color.RED)
+
+                            Result.Status.LOADING ->
+                                apply("Searching...", Color.BLACK)
                         }
                     }
                 }
             }
+
+            private fun apply(message: String, color: Int) {
+                dialogBinding.txtName.apply {
+                    text = message
+                    setTextColor(color)
+                }
+            }
+
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
         })
@@ -234,7 +244,7 @@ class CitiesFragment : Fragment() {
         AlertDialog.Builder(context)
                 .setPositiveButton("Add") { _, _->
                     if(remoteCity == null) {
-                        Toast.makeText(context, "No city found!", Toast.LENGTH_SHORT).show()
+                        viewModel.showError("No city found!")
                     } else {
                         saveListener.invoke(remoteCity!!)
                     }
@@ -252,18 +262,17 @@ class CitiesFragment : Fragment() {
                 .withOpenSettingsButton("Settings")
                 .build()
 
-
         val permissionListener = object : PermissionListener {
             override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                 fusedLocationClient.lastLocation
                         .addOnSuccessListener { location: Location? ->
                             if(location == null) {
-                                Toast.makeText(context, "No location has been registered", Toast.LENGTH_LONG).show()
+                                viewModel.showError("No location has been registered")
                             } else {
                                 viewModel.insertCity(location.latitude, location.longitude)
                             }
                         }.addOnFailureListener {
-                            Toast.makeText(context, "Could not get location due to ${it.message}", Toast.LENGTH_LONG).show()
+                            viewModel.showError("Could not get location due to ${it.message}")
                         }
             }
             override fun onPermissionDenied(p0: PermissionDeniedResponse?) {}

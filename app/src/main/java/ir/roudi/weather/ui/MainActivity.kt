@@ -1,7 +1,6 @@
 package ir.roudi.weather.ui
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
@@ -12,8 +11,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.R
 import ir.roudi.weather.WeatherApp
-import ir.roudi.weather.utils.isInternetConnected
-import ir.roudi.weather.utils.observeOnce
+import ir.roudi.weather.utils.*
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -44,23 +42,23 @@ class MainActivity : AppCompatActivity() {
 
         val swipeRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         swipeRefresh.setOnRefreshListener {
-            if (isInternetConnected()) {
-                viewModel.refresh(true)
-            } else {
-                Toast.makeText(this, "No Internet", Toast.LENGTH_SHORT).show()
-                swipeRefresh.isRefreshing = false
+            viewModel.refresh(true)
+        }
+
+        viewModel.actionShowRefresh.observe(this) { shouldRefresh ->
+            shouldRefresh?.let { swipeRefresh.isRefreshing = it  }
+        }
+
+        viewModel.errorMessage.observe(this) {
+            it?.getContentIfNotHandled()?.let { message ->
+                swipeRefresh.snackbar("Error: $message")
             }
         }
 
-        viewModel.actionShowRefresh.observe(this) {
-            it ?: return@observe
-            swipeRefresh.isRefreshing = it
-        }
-
-        viewModel.actionShowError.observe(this) {
-            if(it != true) return@observe
-            Toast.makeText(this@MainActivity, "Something went wrong", Toast.LENGTH_SHORT).show()
-            viewModel.showingErrorCompleted()
+        viewModel.shouldUpdateWidget.observe(this) {
+            it?.getContentIfNotHandled()?.let { shouldUpdate ->
+                if(shouldUpdate) updateWidgets()
+            }
         }
     }
 }

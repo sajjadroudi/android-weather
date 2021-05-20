@@ -10,13 +10,12 @@ import android.widget.RemoteViews
 import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.R
 import ir.roudi.weather.data.Repository
+import ir.roudi.weather.data.local.db.entity.City
+import ir.roudi.weather.data.local.db.entity.Weather
 import ir.roudi.weather.data.local.pref.SharedPrefHelper
 import ir.roudi.weather.ui.MainActivity
 import ir.roudi.weather.utils.getBitmap
 import ir.roudi.weather.utils.observeOnce
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.io.IOException
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,69 +28,86 @@ class WeatherAppWidgetProvider : AppWidgetProvider() {
 
         val cityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
         if(cityId == 0) {
-            appWidgetIds.forEach { appWidgetId ->
-                val pendingIntent : PendingIntent = Intent(context, MainActivity::class.java)
-                        .let { intent ->  PendingIntent.getActivity(context, 0, intent, 0) }
-
-                val views: RemoteViews = RemoteViews(
-                        context.packageName,
-                        R.layout.widget_weather
-                ).apply {
-                    setOnClickPendingIntent(R.id.container, pendingIntent)
-                    setViewVisibility(R.id.unknown_container, View.VISIBLE)
-                    setViewVisibility(R.id.weather_container, View.GONE)
-                }
-
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            }
+            handleNoCitySelected(appWidgetIds, context, appWidgetManager)
             return
         }
 
-        GlobalScope.launch {
-            try {
-                repository.refreshWeather(cityId)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        val weather = repository.getWeather(cityId)
-        weather.observeOnce { weather ->
-            weather ?: return@observeOnce
-
-            appWidgetIds.forEach { appWidgetId ->
-                val pendingIntent : PendingIntent = Intent(context, MainActivity::class.java)
-                        .let { intent ->  PendingIntent.getActivity(context, 0, intent, 0) }
-
-                val views: RemoteViews = RemoteViews(
-                        context.packageName,
-                        R.layout.widget_weather
-                ).apply {
-                    setOnClickPendingIntent(R.id.container, pendingIntent)
-                    setTextViewText(R.id.txt_temp, weather.temperature.toString())
-                    setTextViewText(R.id.txt_weather, weather.main)
-                    setImageViewBitmap(R.id.img_weather, context.getBitmap(weather))
-                    setViewVisibility(R.id.unknown_container, View.GONE)
-                    setViewVisibility(R.id.weather_container, View.VISIBLE)
-                }
-
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            }
+        repository.fetchWeather(cityId).observeOnce {
+            updateWeather(it, appWidgetIds, context, appWidgetManager)
         }
 
-        val city = repository.getCity(cityId)
-        city.observeOnce {
-            appWidgetIds.forEach { appWidgetId ->
-                val views = RemoteViews(
-                        context.packageName,
-                        R.layout.widget_weather
-                )
-
-                views.setTextViewText(R.id.txt_city_name, it.name)
-
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            }
+        repository.getCity(cityId).observeOnce {
+            updateCity(it, appWidgetIds, context, appWidgetManager)
         }
 
+    }
+
+    private fun updateWeather(
+            weather: Weather?,
+            appWidgetIds: IntArray,
+            context: Context,
+            appWidgetManager: AppWidgetManager
+    ) {
+        weather ?: return
+
+        appWidgetIds.forEach { appWidgetId ->
+            val pendingIntent : PendingIntent = Intent(context, MainActivity::class.java)
+                    .let { intent ->  PendingIntent.getActivity(context, 0, intent, 0) }
+
+            val views: RemoteViews = RemoteViews(
+                    context.packageName,
+                    R.layout.widget_weather
+            ).apply {
+                setOnClickPendingIntent(R.id.container, pendingIntent)
+                setTextViewText(R.id.txt_temp, weather.temperature.toString())
+                setTextViewText(R.id.txt_weather, weather.main)
+                setImageViewBitmap(R.id.img_weather, context.getBitmap(weather))
+                setViewVisibility(R.id.unknown_container, View.GONE)
+                setViewVisibility(R.id.weather_container, View.VISIBLE)
+            }
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+    }
+
+    private fun updateCity(
+        city: City,
+        appWidgetIds: IntArray,
+        context: Context,
+        appWidgetManager: AppWidgetManager
+    ) {
+        appWidgetIds.forEach { appWidgetId ->
+            val views = RemoteViews(
+                    context.packageName,
+                    R.layout.widget_weather
+            )
+
+            views.setTextViewText(R.id.txt_city_name, city.name)
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+    }
+
+    private fun handleNoCitySelected(
+            appWidgetIds: IntArray,
+            context: Context,
+            appWidgetManager: AppWidgetManager
+    ) {
+        appWidgetIds.forEach { appWidgetId ->
+            val pendingIntent : PendingIntent = Intent(context, MainActivity::class.java)
+                    .let { intent ->  PendingIntent.getActivity(context, 0, intent, 0) }
+
+            val views: RemoteViews = RemoteViews(
+                    context.packageName,
+                    R.layout.widget_weather
+            ).apply {
+                setOnClickPendingIntent(R.id.container, pendingIntent)
+                setViewVisibility(R.id.unknown_container, View.VISIBLE)
+                setViewVisibility(R.id.weather_container, View.GONE)
+            }
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
     }
 
 }

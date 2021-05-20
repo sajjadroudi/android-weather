@@ -37,10 +37,9 @@ class WeatherFragment : Fragment() {
     ): View? {
         setupBinding(inflater, container)
 
-        viewModel.actionShowMoreDetailsDialog.observe(viewLifecycleOwner) { shouldShow ->
-            if(shouldShow) {
-                moreDetailsDialog.show()
-                viewModel.showingMoreDetailsDialogCompleted()
+        viewModel.actionShowMoreDetailsDialog.observe(viewLifecycleOwner) {
+            it?.getContentIfNotHandled()?.let { shouldShow ->
+                if(shouldShow) moreDetailsDialog.show()
             }
         }
 
