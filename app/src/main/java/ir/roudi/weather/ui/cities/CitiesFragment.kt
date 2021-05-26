@@ -3,19 +3,22 @@ package ir.roudi.weather.ui.cities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Color
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -25,30 +28,25 @@ import com.karumi.dexter.listener.single.CompositePermissionListener
 import com.karumi.dexter.listener.single.PermissionListener
 import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener
 import dagger.hilt.android.AndroidEntryPoint
+import ir.roudi.weather.data.Result
 import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.databinding.DialogAddCityBinding
 import ir.roudi.weather.databinding.DialogEditCityBinding
 import ir.roudi.weather.databinding.DialogFindCityBinding
 import ir.roudi.weather.databinding.FragmentCitiesBinding
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
-import ir.roudi.weather.data.Result
 import ir.roudi.weather.utils.snackbar
 import ir.roudi.weather.utils.updateWidgets
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import java.util.*
 import ir.roudi.weather.data.remote.response.City as RemoteCity
 
 @AndroidEntryPoint
 class CitiesFragment : Fragment() {
 
-    private val fusedLocationClient: FusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(requireContext())
-    }
-
     private lateinit var binding : FragmentCitiesBinding
-
-    private val locationPermission = Manifest.permission.ACCESS_COARSE_LOCATION
 
     private val viewModel : CitiesViewModel by viewModels()
 
@@ -126,7 +124,7 @@ class CitiesFragment : Fragment() {
             it?.getContentIfNotHandled()?.let { shouldAddNewCity ->
                 if(shouldAddNewCity) {
                     showAddCityDialog { useCurrentLocation ->
-                        if(useCurrentLocation) saveLastLocationAsCity()
+                        if(useCurrentLocation) saveCurrentLocationAsCity()
                         else showFindCityByNameDialog(
                                 findListener = { name ->
                                     viewModel.findCity(name)
@@ -256,7 +254,7 @@ class CitiesFragment : Fragment() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun saveLastLocationAsCity() {
+    private fun saveCurrentLocationAsCity() {
         val snackbarPermissionListener = SnackbarOnDeniedPermissionListener.Builder
                 .with(view, "Location permission is needed for detecting your city location")
                 .withOpenSettingsButton("Settings")
@@ -264,16 +262,44 @@ class CitiesFragment : Fragment() {
 
         val permissionListener = object : PermissionListener {
             override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
-                fusedLocationClient.lastLocation
-                        .addOnSuccessListener { location: Location? ->
-                            if(location == null) {
-                                viewModel.showError("No location has been registered")
-                            } else {
-                                viewModel.insertCity(location.latitude, location.longitude)
-                            }
-                        }.addOnFailureListener {
-                            viewModel.showError("Could not get location due to ${it.message}")
+                val locationManager = getSystemService(
+                        requireContext(), LocationManager::class.java
+                )
+
+                if(locationManager == null) {
+                    viewModel.showError("Something went wrong")
+                    return
+                }
+
+                if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    showTurnOnGPSDialog()
+                    return
+                }
+
+                val lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+
+                val twoMinutes = 2 * 60 * 1000
+                val isRecent = (lastLocation?.time ?: 0) >
+                        Calendar.getInstance().timeInMillis - twoMinutes
+
+                if(lastLocation != null && isRecent) {
+                    viewModel.insertCity(lastLocation.latitude, lastLocation.longitude)
+                } else {
+                    viewModel.showProgressBar()
+
+                    val listener = object : LocationListener {
+                        override fun onLocationChanged(location: Location) {
+                            viewModel.insertCity(location.latitude, location.longitude)
+                            locationManager.removeUpdates(this)
                         }
+
+                        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+                    }
+
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER, 0L, 0f, listener
+                    )
+                }
             }
             override fun onPermissionDenied(p0: PermissionDeniedResponse?) {}
             override fun onPermissionRationaleShouldBeShown(request: PermissionRequest?, token: PermissionToken?) {
@@ -287,9 +313,21 @@ class CitiesFragment : Fragment() {
         )
 
         Dexter.withContext(context)
-                .withPermission(locationPermission)
+                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                 .withListener(compositePermissionListener)
                 .check()
+    }
+
+    private fun showTurnOnGPSDialog() {
+        AlertDialog.Builder(context)
+            .setMessage("Enable GPS")
+            .setCancelable(false)
+            .setPositiveButton(android.R.string.yes) { _, _ ->
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }.setNegativeButton(android.R.string.no) { dialog, _ ->
+                dialog.cancel()
+            }.create()
+            .show()
     }
 
 }

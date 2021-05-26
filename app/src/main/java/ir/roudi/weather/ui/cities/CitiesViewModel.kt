@@ -111,6 +111,10 @@ class CitiesViewModel @Inject constructor(
         message?.let { _error.value = Event(it) }
     }
 
+    fun showProgressBar() {
+        _actionShowProgressBar.value = true
+    }
+
     private fun notifyUser(message: String?) {
         message?.let { _message.value = Event(it) }
     }
