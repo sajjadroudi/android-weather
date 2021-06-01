@@ -7,7 +7,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import ir.roudi.weather.data.Repository
+import ir.roudi.weather.data.repository.Repository
 import retrofit2.HttpException
 
 @HiltWorker

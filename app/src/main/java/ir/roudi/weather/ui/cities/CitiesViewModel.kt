@@ -3,11 +3,11 @@ package ir.roudi.weather.ui.cities
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.roudi.weather.data.Event
-import ir.roudi.weather.data.Repository
+import ir.roudi.weather.data.repository.Repository
 import ir.roudi.weather.data.Result
 import ir.roudi.weather.data.Result.Status.*
 import ir.roudi.weather.data.local.db.entity.City
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
+import ir.roudi.weather.data.local.pref.DefaultSharedPrefHelper
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +25,7 @@ class CitiesViewModel @Inject constructor(
         get() = _actionAddNewCity
 
     private val _selectedCityId = MutableLiveData(
-        repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
+        repository.getInt(DefaultSharedPrefHelper.SELECTED_CITY_ID)
     )
     val selectedCityId : LiveData<Int>
         get() = _selectedCityId
@@ -56,7 +56,7 @@ class CitiesViewModel @Inject constructor(
         }
 
         if(city.cityId == selectedCityId.value) {
-            repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, 0)
+            repository.setInt(DefaultSharedPrefHelper.SELECTED_CITY_ID, 0)
             _shouldUpdateWidget.value = Event(true)
         }
     }
@@ -97,8 +97,8 @@ class CitiesViewModel @Inject constructor(
             repository.findCity(name)
 
     fun setSelectedCityId(cityId: Int) {
-        oldSelectedCityId = _selectedCityId.value ?: repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
-        repository.setInt(SharedPrefHelper.SELECTED_CITY_ID, cityId)
+        oldSelectedCityId = _selectedCityId.value ?: repository.getInt(DefaultSharedPrefHelper.SELECTED_CITY_ID)
+        repository.setInt(DefaultSharedPrefHelper.SELECTED_CITY_ID, cityId)
         _selectedCityId.value = cityId
         _shouldUpdateWidget.value = Event(true)
     }

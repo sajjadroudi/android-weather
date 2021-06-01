@@ -9,10 +9,10 @@ import android.view.View
 import android.widget.RemoteViews
 import dagger.hilt.android.AndroidEntryPoint
 import ir.roudi.weather.R
-import ir.roudi.weather.data.Repository
+import ir.roudi.weather.data.repository.Repository
 import ir.roudi.weather.data.local.db.entity.City
 import ir.roudi.weather.data.local.db.entity.Weather
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
+import ir.roudi.weather.data.local.pref.DefaultSharedPrefHelper
 import ir.roudi.weather.ui.MainActivity
 import ir.roudi.weather.utils.getBitmap
 import ir.roudi.weather.utils.observeOnce
@@ -26,7 +26,7 @@ class WeatherAppWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-        val cityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
+        val cityId = repository.getInt(DefaultSharedPrefHelper.SELECTED_CITY_ID)
         if(cityId == 0) {
             handleNoCitySelected(appWidgetIds, context, appWidgetManager)
             return

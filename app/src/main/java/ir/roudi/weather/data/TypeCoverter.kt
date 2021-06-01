@@ -51,3 +51,43 @@ fun RemoteCity.toLocalCity() : LocalCity = LocalCity(
         coordinates.longitude,
         coordinates.latitude
 )
+
+fun LocalCity.toRemoteCity(): RemoteCity {
+    return RemoteCity(
+            cityId,
+            name,
+            countryCode,
+            Coordinates(longitude, latitude)
+    )
+}
+
+fun List<LocalCity>.toRemoteCity(): MutableList<RemoteCity> {
+    return this.map {
+        it.toRemoteCity()
+    }.toMutableList()
+}
+
+fun LocalWeather.toRemoteWeather() =
+        RemoteWeather(
+                main,
+                description,
+                iconId,
+                temperature,
+                pressure,
+                humidityPercent,
+                minTemperature,
+                maxTemperature,
+                windSpeed,
+                cloudinessPercent,
+                lastHourRainVolume,
+                lastHourSnowVolume,
+                time,
+                sunrise,
+                sunset
+        )
+
+fun List<RemoteCity>.toLocalCity() : MutableList<LocalCity> {
+    return this.map {
+        it.toLocalCity()
+    }.toMutableList()
+}

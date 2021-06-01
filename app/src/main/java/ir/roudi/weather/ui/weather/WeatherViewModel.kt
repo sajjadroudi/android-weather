@@ -6,8 +6,8 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.roudi.weather.data.Event
-import ir.roudi.weather.data.Repository
-import ir.roudi.weather.data.local.pref.SharedPrefHelper
+import ir.roudi.weather.data.repository.Repository
+import ir.roudi.weather.data.local.pref.DefaultSharedPrefHelper
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,7 +15,7 @@ class WeatherViewModel @Inject constructor(
         private val repository: Repository
 ) : ViewModel() {
 
-    private val selectedCityId = repository.getInt(SharedPrefHelper.SELECTED_CITY_ID)
+    private val selectedCityId = repository.getInt(DefaultSharedPrefHelper.SELECTED_CITY_ID)
 
     val existsSelectedCity = (selectedCityId != 0)
 

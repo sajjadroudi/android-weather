@@ -39,6 +39,7 @@ class CitiesAdapter(
             binding.city = city
             binding.selectedCityId = selectedCityId
             binding.callback = callback
+            binding.executePendingBindings()
         }
 
         companion object {

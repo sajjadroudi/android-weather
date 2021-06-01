@@ -3,7 +3,7 @@ package ir.roudi.weather.ui
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.roudi.weather.data.Event
-import ir.roudi.weather.data.Repository
+import ir.roudi.weather.data.repository.Repository
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
